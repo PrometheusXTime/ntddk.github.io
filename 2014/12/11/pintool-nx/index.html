@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Intel PinにおけるNXの扱い | 一生あとで読んでろ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="はじめに2014.12.07~08にわたって開催されたSECCON CTF 2014の予選（英語版）にて，ROP: Impossibleというpwn問題が出題された．タイトルの通り，この問題ではROPが制限されている．ここでは，その実現手法として用いられていたIntel Pin(pintool)について，またこの問題にあった欠陥について述べる．したがって，このエントリはROP: Impossibl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Intel PinにおけるNXの扱い">
+<meta property="og:url" content="http://ntddk.github.io/2014/12/11/pintool-nx/index.html">
+<meta property="og:site_name" content="一生あとで読んでろ">
+<meta property="og:description" content="はじめに2014.12.07~08にわたって開催されたSECCON CTF 2014の予選（英語版）にて，ROP: Impossibleというpwn問題が出題された．タイトルの通り，この問題ではROPが制限されている．ここでは，その実現手法として用いられていたIntel Pin(pintool)について，またこの問題にあった欠陥について述べる．したがって，このエントリはROP: Impossibl">
+<meta property="og:updated_time" content="2014-12-11T15:43:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Intel PinにおけるNXの扱い">
+<meta name="twitter:description" content="はじめに2014.12.07~08にわたって開催されたSECCON CTF 2014の予選（英語版）にて，ROP: Impossibleというpwn問題が出題された．タイトルの通り，この問題ではROPが制限されている．ここでは，その実現手法として用いられていたIntel Pin(pintool)について，またこの問題にあった欠陥について述べる．したがって，このエントリはROP: Impossibl">
+<meta name="twitter:creator" content="@ntddk">
+  
+    <link rel="alternative" href="/atom.xml" title="一生あとで読んでろ" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">一生あとで読んでろ</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技術ブログ</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-home-icon" class="nav-icon" href="/"></a>
+        
+          <a id="nav-about-icon" class="nav-icon" href="/about"></a>
+        
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+      </nav>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-pintool-nx" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Intel PinにおけるNXの扱い
+    </h1>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2014-12-11T09:00:00.000Z" itemprop="datePublished">12-11-2014</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p>2014.12.07~08にわたって開催されたSECCON CTF 2014の予選（英語版）にて，ROP: Impossibleというpwn問題が出題された．タイトルの通り，この問題ではROPが制限されている．<br>ここでは，その実現手法として用いられていたIntel Pin(pintool)について，またこの問題にあった欠陥について述べる．<br>したがって，このエントリはROP: Impossibleの<strong>ネタバレ</strong>を兼ねている．注意されたし．</p>
+<h1 id="問題の概要">問題の概要</h1><p>問題文は以下の通り．Pinによって保護された脆弱なバイナリからフラグを読み出せというものだ．</p>
+<blockquote>
+<p>ropi.pwn.seccon.jp:10000<br>read <code>/flag</code> and write the content to stdout, such as the following pseudo code.<br><code>open(&quot;/flag&quot;, 0);</code><br><code>read(3, buf, 32);</code><br><code>write(1, buf, 32);</code><br>Notice that the <code>vuln</code> executable is protected by an Intel Pin tool, the source code of which is <code>norop.cpp</code>.</p>
+</blockquote>
+<p>パッと見，バイナリは良心的な構成であるように思われる．<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vuln: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), statically linked, for GNU/Linux 2.6.26, BuildID[sha1]=0xcb671b1dc0409082c3f3962818d366fcb8771ead, not stripped</span><br></pre></td></tr></table></figure></p>
+<p>有効になっているのはNXだけだ．<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE&#10;No RELRO        No canary found   NX enabled    No PIE          No RPATH   No RUNPATH   vuln</span><br></pre></td></tr></table></figure></p>
+<p>だからといって，解法が自明であるわけではない．この問題の肝は，いかにしてPinによる保護をかい潜るかにある．</p>
+<h1 id="Pin">Pin</h1><p>Pinは，Intelによって開発されたDBI(dynamic binary instrumentation)フレームワークである．<br>DBIとは，プログラムにコードを挿入することで実行時の情報を取得・操作する技術であり，プログラムのパフォーマンス測定やエラー検出，CPUキャッシュの分析や未定義命令のエミュレーションなど，多方面で応用されている．<br>さて，ROP: Impossibleは以下のコードによって保護されている．<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &#60;stdlib.h&#62;&#10;#include &#34;pin.H&#34;&#10;&#10;ADDRINT&#9;shadow_stack[4096];&#10;int&#9;&#9;shadow_sp = -1;&#10;&#10;VOID push_retaddr(ADDRINT esp, ADDRINT eip)&#10;&#123;&#10;&#9;if(shadow_sp &#62;= (int)sizeof(shadow_stack) - 1)&#123;&#10;&#9;&#9;// cannot push retaddr to shadow stack&#10;&#9;&#9;exit(-1);&#10;&#9;&#125;&#10;&#9;PIN_SafeCopy(&#38;shadow_stack[++shadow_sp], (VOID*)esp, sizeof(ADDRINT));&#10;&#125;&#10;&#10;VOID pop_retaddr(ADDRINT esp, ADDRINT eip)&#10;&#123;&#10;&#9;ADDRINT&#9;&#9;retaddr;&#10;&#10;&#9;PIN_SafeCopy(&#38;retaddr, (VOID*)esp, sizeof(ADDRINT));&#10;&#10;&#9;while(shadow_sp &#62;= 0 &#38;&#38; shadow_stack[shadow_sp--] != retaddr);&#10;&#9;if(shadow_sp &#60; 0)&#123;&#10;&#9;&#9;exit(-1);&#10;&#9;&#125;&#10;&#125;&#10;&#10;VOID check_syscall(ADDRINT eax)&#10;&#123;&#10;&#9;switch(eax)&#123;&#10;&#9;// syscalls for exploit&#10;&#9;case 3:&#9;&#9;// sys_read&#10;&#9;case 4:&#9;&#9;// sys_write&#10;&#9;case 5:&#9;&#9;// sys_open&#10;&#9;case 6:&#9;&#9;// sys_close&#10;&#10;&#9;// syscalls executed until entry point&#10;&#9;case 45:&#9;// sys_brk&#10;&#9;case 122:&#9;// sys_newuname&#10;&#9;case 192:&#9;// sys_mmap2&#10;&#9;case 197:&#9;// sys_fstatfs64&#10;&#9;case 243:&#9;// sys_set_thread_area&#10;&#9;&#9;break;&#10;&#10;&#9;// invalid syscalls&#10;&#9;default:&#10;&#9;&#9;exit(-1);&#10;&#9;&#125;&#10;&#125;&#10;&#10;VOID insert_hooks(INS ins, VOID *val)&#10;&#123;&#10;&#9;if(INS_IsCall(ins))&#123;&#10;&#9;&#9;// push retaddr to shadow stack&#10;&#9;&#9;if(XED_ICLASS_CALL_FAR == INS_Opcode(ins))&#123;&#10;&#9;&#9;&#9;exit(-1);&#10;&#9;&#9;&#125;&#10;&#9;&#9;INS_InsertCall(ins, IPOINT_TAKEN_BRANCH,(AFUNPTR)push_retaddr,&#10;&#9;&#9;&#9;IARG_REG_VALUE, REG_ESP, IARG_INST_PTR, IARG_END);&#10;&#9;&#125;else if(INS_IsRet(ins))&#123;&#10;&#9;&#9;// pop retaddr from shadow stack, and then check it&#10;&#9;&#9;if(XED_ICLASS_RET_FAR == INS_Opcode(ins))&#123;&#10;&#9;&#9;&#9;exit(-1);&#10;&#9;&#9;&#125;else&#123;&#10;&#9;&#9;&#9;INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)pop_retaddr,&#10;&#9;&#9;&#9;&#9;IARG_REG_VALUE, REG_ESP, IARG_INST_PTR, IARG_END);&#10;&#9;&#9;&#125;&#10;&#9;&#125;else if(INS_IsSyscall(ins))&#123;&#10;&#9;&#9;// check syscall&#10;&#9;&#9;INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)check_syscall,&#10;&#9;&#9;&#9;IARG_REG_VALUE, REG_EAX, IARG_END);&#10;&#9;&#125;&#10;&#125;&#10;&#10;int main(int argc, char *argv[])&#10;&#123;&#10;&#9;PIN_Init(argc, argv);&#10;&#9;INS_AddInstrumentFunction(insert_hooks, NULL);&#10;    PIN_StartProgram();&#10;    &#10;    return 0;&#10;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>このプログラムが，vulnの共有ライブラリとして噛まされている．<code>INS_*</code>は命令単位のinstumentationのために提供されているPinのAPIである．<br>要するに，リターンアドレスの検証によって，ROPが制限されているのだ．</p>
+<h1 id="JOP">JOP</h1><p>ROPができない環境ならば，どうすればよいのか．<br>そもそも，ROPに用いられる<code>ret</code>は，スタックの最上位アドレスに対する<code>pop</code>と<code>jmp</code>と等価であると見做せる．ゆえに<code>jmp</code>によってchainを構築すれば，<code>ret</code>を用いること無くROPと同様なコードを作成することができる．これをJOP(Jump-oriented programming)という．<br>さらに，スタックに対するアドレスの<code>push</code>と<code>jmp</code>は，<code>call</code>と等価であると見做せる．ゆえに<code>call</code>と<code>pop</code>によってROPを代替することができる．<br>つまり，ROP: Impossibleは<code>ret</code>制限下の環境を前提に<code>jmp</code>と<code>call</code>でchainを構築しろというストイックな問題だった．<br>Pinに起因する欠陥がなければ．</p>
+<h1 id="writeup">writeup</h1><p>この問題を最初に解いたのは，TOEFL BEGINNERという謎のチームだった．続いてbinja, PPPと続いている．<br>優勝チームであるPPPメンバーのRicky Zhouが公開しているwriteupを見てみよう．</p>
+<ul>
+<li><a href="https://rzhou.org/~ricky/seccon2014/rop_impossible/" target="_blank" rel="external">Index of /~ricky/seccon2014/rop_impossible/</a></li>
+</ul>
+<p>明らかにおかしい．bssセグメントにシェルコードを置いて実行しているだけではないか．<br>だが，このバイナリはNXが有効だったはずだ．ローカルでこのコードを実行しても，SIGSEGVが発生する．<br>これは一体どうしたことだろう．</p>
+<h1 id="JITコンパイルの弊害">JITコンパイルの弊害</h1><p>結論から言うと，Pinの制御下にあるバイナリのNXは無効化されるようになっている．<br>/proc/pid/mapsを確認すると，一見nonexecであるように見える．<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bf984000-bf9a5000 rw-p 00000000 00:00 0          [stack]</span><br></pre></td></tr></table></figure></p>
+<p>だが，実際はそうではない．<br>PinはJITコンパイルによってinstrumentationを実現している．そのため，バイナリはPinによってmmapされ，execされる．このとき，Pinは元来バイナリに付与されていた実行権限を無視してしまう．<br>つまり，ROPを制限するためのPinが，NXを無効化してしまっていたのだ．<br>そもそも，LinuxにおいてNXの状態をmaps以外から取得するのは難しい．強いて挙げるならば，checksecのように<code>readelf -W -l file | grep &#39;GNU_STACK&#39;</code>を叩くといったところだろうか．だが，これだけではmmapやmprotectに追随することができない．WindowsのVirtualQueryに相当する機能はないのだろうか．</p>
+<h1 id="おわりに">おわりに</h1><p>XSS Bonsaiも同様だが，CTFについてもテストは重要であるということを気付かされた．<br>運営の穴を突くのもCTFの醍醐味のひとつなのだろうが，しかし厄介な問題である．<br>最近はPinやDynamoRioによるマルウェア解析が流行っているように見受けられるが，やがてはDBIツールのデメリットについても検討を加えなければならなくなるだろう．</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="cigrq72th00148wu35t4trggv" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/01/23/sandbox-transparency/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          サンドボックスの透明性
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/12/09/v2e/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">マルウェア解析におけるRecord and Replayの設計</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 ntddk<br>
+      <a href="https://github.com/steven5538/hexo-theme-athena" target="_blank">Athena</a> by <a href="http://steven5538.tw" target="_blank">Steven5538</a> | Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+  </div>
+</body>
+</html>

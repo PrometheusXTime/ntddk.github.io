@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>続・サンドボックスの透明性 | 一生あとで読んでろ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="耐解析機能の分類Gabriel N. BarbosaとRodrigo R. Brancoは，マルウェアの耐解析機能をAnti-Debugging, Anti-Disassembly, Obfuscation, Anti-VMの四種類に分類した．彼らはIntelのセキュリティ研究者であり，マルウェアに備わった耐解析機能の統計を過去二回に渡って発信してきた．気になるのは，サンドボックスの実装にあたって">
+<meta property="og:type" content="article">
+<meta property="og:title" content="続・サンドボックスの透明性">
+<meta property="og:url" content="http://ntddk.github.io/2015/03/14/sandbox-transparency-in-the-wild/index.html">
+<meta property="og:site_name" content="一生あとで読んでろ">
+<meta property="og:description" content="耐解析機能の分類Gabriel N. BarbosaとRodrigo R. Brancoは，マルウェアの耐解析機能をAnti-Debugging, Anti-Disassembly, Obfuscation, Anti-VMの四種類に分類した．彼らはIntelのセキュリティ研究者であり，マルウェアに備わった耐解析機能の統計を過去二回に渡って発信してきた．気になるのは，サンドボックスの実装にあたって">
+<meta property="og:image" content="http://ntddk.github.io/image/anti-vm.jpg">
+<meta property="og:image" content="http://ntddk.github.io/image/vm-class.png">
+<meta property="og:updated_time" content="2015-03-17T01:27:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="続・サンドボックスの透明性">
+<meta name="twitter:description" content="耐解析機能の分類Gabriel N. BarbosaとRodrigo R. Brancoは，マルウェアの耐解析機能をAnti-Debugging, Anti-Disassembly, Obfuscation, Anti-VMの四種類に分類した．彼らはIntelのセキュリティ研究者であり，マルウェアに備わった耐解析機能の統計を過去二回に渡って発信してきた．気になるのは，サンドボックスの実装にあたって">
+<meta name="twitter:creator" content="@ntddk">
+  
+    <link rel="alternative" href="/atom.xml" title="一生あとで読んでろ" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">一生あとで読んでろ</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技術ブログ</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-home-icon" class="nav-icon" href="/"></a>
+        
+          <a id="nav-about-icon" class="nav-icon" href="/about"></a>
+        
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+      </nav>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-sandbox-transparency-in-the-wild" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      続・サンドボックスの透明性
+    </h1>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-03-14T12:00:00.000Z" itemprop="datePublished">03-14-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="耐解析機能の分類">耐解析機能の分類</h1><p><a href="https://twitter.com/gabrielnb" target="_blank" rel="external">Gabriel N. Barbosa</a>と<a href="https://twitter.com/BSDaemon" target="_blank" rel="external">Rodrigo R. Branco</a>は，マルウェアの耐解析機能を<strong>Anti-Debugging, Anti-Disassembly, Obfuscation, Anti-VM</strong>の四種類に分類した．彼らはIntelのセキュリティ研究者であり，マルウェアに備わった耐解析機能の統計を過去二回に渡って発信してきた．<br>気になるのは，サンドボックスの実装にあたって問題となるAnti-VMだ．8,103,167もの検体を用いた調査によると，その内訳は以下のようになっている．</p>
+<p><img src="/image/anti-vm.jpg" title="" prevalent="" characteristics="" in="" modern="" malware"より"=""></p>
+<p>これらはいずれもVMware社製品を検出するための手法である．残念ながら他の仮想マシンモニタについての情報は掲載されて<strong>いない</strong>．</p>
+<h1 id="仮想マシンモニタの分類">仮想マシンモニタの分類</h1><p><a href="http://ntddk.github.io/2015/01/23/sandbox-transparency/">以前にも少しばかり述べた</a>，サンドボックスの透明性(transparency)に関する話を蒸し返そう．<br>サンドボックスにOut-of-the-boxなVMIを採用すれば，少なくともAnti-Debuggingについては無視できる．<br>では，サンドボックスにXenを用いれば，QEMUより検出されにくくなるだろうか．あるいは，その逆はどうだろうか．<br>多くの研究者が好き勝手なことを言っているが，仮想マシンモニタの実現手法をもってサンドボックスの透明性を語るのは些か性急だろう．なぜなら，サンドボックスの透明性はその設計ではなくマルウェアの実装によって左右されるからだ．<strong>Out-of-the-box VMIは設計の話だが，Anti-VMは実装の話だ</strong>（と思う）．<br>ところで私は，仮想マシンモニタの実現手法を「プロセッサ拡張によるもの」と「バイナリ変換によるもの」に分類していたが，別の分類方法を見つけた．</p>
+<p><img src="/image/vm-class.png" title="" a="" survey="" of="" security="" issues="" in="" hardware="" virtualization"より"=""></p>
+<p>命令セットアーキテクチャを基準に分類することで，より分かりやすくなっている．今後はこの図に準拠したい．<br>話を戻そう．<br>何が言いたいのかというと，in-the-wildなマルウェアに備わったAnti-VMの内訳が分からないことには，サンドボックスの透明性について云々することはできないということだ．</p>
+<h1 id="検体">検体</h1><p>誰もやっていないようなので，調べてみることにした．<br>やや恣意的（誤用？）な選択だが，今回は<a href="http://virusshare.com/" target="_blank" rel="external">VirusShare.com</a>からCitadelのバリアント479検体や，Mandiantの<a href="http://intelreport.mandiant.com/Mandiant_APT1_Report.pdf" target="_blank" rel="external">APT1レポート</a>にて報告された中国軍総参謀部第三部第二局こと61398部隊<strong>と思しき</strong>グループ製の874検体を含む<strong>総計33,260検体</strong>を用いた．</p>
+<h1 id="Anti-VMの実態">Anti-VMの実態</h1><p><a href="http://plusvic.github.io/yara/" target="_blank" rel="external">YARA</a>を用いてAnti-VMの実態を調べた．<br>ルールには公式の<a href="http://yararules.com/rules/antidebug.yar" target="_blank" rel="external">antidebug.yar</a>を用いた．なお，このルールにはAnti-VMのみならずAnti-Debuggerについても記載されている．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># awk &#39;&#123; print $1&#125;&#39; yara.log | sort | uniq -c | sort -r&#10;  20340 DebuggerPattern__RDTSC&#10;  18966 DebuggerPattern__CPUID&#10;   9292 DebuggerTiming__Ticks&#10;   7371 DebuggerPattern__SEH_Inits&#10;   6955 DebuggerException__UnhandledFilter&#10;   5715 DebuggerTiming__PerformanceCounter&#10;   4377 DebuggerPattern__SEH_Saves&#10;   2949 DebuggerCheck__API&#10;   2631 DebuggerCheck__QueryInfo&#10;   2182 SEH__vba&#10;   1315 DebuggerOutput__String&#10;    887 ThreadControl__Context&#10;    604 vmdetect&#10;    303 DebuggerException__SetConsoleCtrl&#10;    186 SEH__vectored&#10;     83 DebuggerHiding__Thread&#10;     80 DebuggerHiding__Active&#10;     52 DebuggerException__ConsoleCtrl&#10;     10 Check_Dlls&#10;      5 DebuggerCheck__RemoteAPI&#10;      2 DebuggerCheck__GlobalFlags&#10;      1 &#9618;&#9618;DebuggerPattern__RDTSC&#10;      1 Debuggeattern__SEH_Inits&#10;      1 Check_VBox_VideoDrivers&#10;      1 Check_VBox_Description</span><br></pre></td></tr></table></figure>
+<p>マルウェアの開発者がよりgenericな手法を好むことは，<code>RDTSC</code>命令を用いる検体が61.15%, <code>CPUID</code>命令を用いる検体が57.02%含まれていることからも明らかだ．たった2バイトを基準に検出しているため，false positiveだらけなのだろうとはいえ．<br>一方でvmdetectとして計上された検体は全体の1.18%に過ぎない．これはVMware, Virtual PC, Xen, Virtual Boxに関する文字列が含まれる検体を抽出するルールであり，コードは以下のようになっている．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rule vmdetect&#10;&#123;&#10;    meta:&#10;        author = &#34;nex&#34;&#10;        description = &#34;Possibly employs anti-virtualization techniques&#34;&#10;&#10;    strings:&#10;        // Binary tricks&#10;        $vmware = &#123;56 4D 58 68&#125;&#10;        $virtualpc = &#123;0F 3F 07 0B&#125;&#10;        $ssexy = &#123;66 0F 70 ?? ?? 66 0F DB ?? ?? ?? ?? ?? 66 0F DB ?? ?? ?? ?? ?? 66 0F EF&#125;&#10;        $vmcheckdll = &#123;45 C7 00 01&#125;&#10;        $redpill = &#123;0F 01 0D 00 00 00 00 C3&#125;&#10;&#10;        // Random strings&#10;        $vmware1 = &#34;VMXh&#34;&#10;        $vmware2 = &#34;Ven_VMware_&#34; nocase&#10;        $vmware3 = &#34;Prod_VMware_Virtual_&#34; nocase&#10;        $vmware4 = &#34;hgfs.sys&#34; nocase&#10;        $vmware5 = &#34;mhgfs.sys&#34; nocase&#10;        $vmware6 = &#34;prleth.sys&#34; nocase&#10;        $vmware7 = &#34;prlfs.sys&#34; nocase&#10;        $vmware8 = &#34;prlmouse.sys&#34; nocase&#10;        $vmware9 = &#34;prlvideo.sys&#34; nocase&#10;        $vmware10 = &#34;prl_pv32.sys&#34; nocase&#10;        $vmware11 = &#34;vpc-s3.sys&#34; nocase&#10;        $vmware12 = &#34;vmsrvc.sys&#34; nocase&#10;        $vmware13 = &#34;vmx86.sys&#34; nocase&#10;        $vmware14 = &#34;vmnet.sys&#34; nocase&#10;        $vmware15 = &#34;vmicheartbeat&#34; nocase&#10;        $vmware16 = &#34;vmicvss&#34; nocase&#10;        $vmware17 = &#34;vmicshutdown&#34; nocase&#10;        $vmware18 = &#34;vmicexchange&#34; nocase&#10;        $vmware19 = &#34;vmdebug&#34; nocase&#10;        $vmware20 = &#34;vmmouse&#34; nocase&#10;        $vmware21 = &#34;vmtools&#34; nocase&#10;        $vmware22 = &#34;VMMEMCTL&#34; nocase&#10;        $vmware23 = &#34;vmx86&#34; nocase&#10;        $vmware24 = &#34;vmware&#34; nocase&#10;        $virtualpc1 = &#34;vpcbus&#34; nocase&#10;        $virtualpc2 = &#34;vpc-s3&#34; nocase&#10;        $virtualpc3 = &#34;vpcuhub&#34; nocase&#10;        $virtualpc4 = &#34;msvmmouf&#34; nocase&#10;        $xen1 = &#34;xenevtchn&#34; nocase&#10;        $xen2 = &#34;xennet&#34; nocase&#10;        $xen3 = &#34;xennet6&#34; nocase&#10;        $xen4 = &#34;xensvc&#34; nocase&#10;        $xen5 = &#34;xenvdb&#34; nocase&#10;        $xen6 = &#34;XenVMM&#34; nocase&#10;        $virtualbox1 = &#34;VBoxHook.dll&#34; nocase&#10;        $virtualbox2 = &#34;VBoxService&#34; nocase&#10;        $virtualbox3 = &#34;VBoxTray&#34; nocase&#10;        $virtualbox4 = &#34;VBoxMouse&#34; nocase&#10;        $virtualbox5 = &#34;VBoxGuest&#34; nocase&#10;        $virtualbox6 = &#34;VBoxSF&#34; nocase&#10;        $virtualbox7 = &#34;VBoxGuestAdditions&#34; nocase&#10;        $virtualbox8 = &#34;VBOX HARDDISK&#34;  nocase&#10;&#10;        // MAC addresses&#10;        $vmware_mac_1a = &#34;00-05-69&#34;&#10;        $vmware_mac_1b = &#34;00:05:69&#34;&#10;        $vmware_mac_1c = &#34;000569&#34;&#10;        $vmware_mac_2a = &#34;00-50-56&#34;&#10;        $vmware_mac_2b = &#34;00:50:56&#34;&#10;        $vmware_mac_2c = &#34;005056&#34;&#10;        $vmware_mac_3a = &#34;00-0C-29&#34; nocase&#10;        $vmware_mac_3b = &#34;00:0C:29&#34; nocase&#10;        $vmware_mac_3c = &#34;000C29&#34; nocase&#10;        $vmware_mac_4a = &#34;00-1C-14&#34; nocase&#10;        $vmware_mac_4b = &#34;00:1C:14&#34; nocase&#10;        $vmware_mac_4c = &#34;001C14&#34; nocase&#10;        $virtualbox_mac_1a = &#34;08-00-27&#34;&#10;        $virtualbox_mac_1b = &#34;08:00:27&#34;&#10;        $virtualbox_mac_1c = &#34;080027&#34;&#10;&#10;    condition:&#10;        any of them&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>見ての通りQEMUに関する記述が存在しない．<br>そこで，vmdetectに以下の様なコードを追加し，再度スキャンしてみた．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rule vmdetect&#10;&#123;&#10;    ~ &#30053; ~&#10;&#10;    strings:&#10;        $QEMU1 = &#34;Bochs&#34; nocase&#10;        $QEMU3 = &#34;QEMU_AUDIO_DRV&#34; nocase&#10;        $QEMU4 = &#34;QEMU VVFAT&#34; nocase&#10;        $QEMU5 = &#34;QEMU ADB Mouse&#34; nocase&#10;        $QEMU6 = &#34;QEMU ADS7846-driven Touchscreen&#34; nocase&#10;        $QEMU7 = &#34;QEMU HARDDISK&#34; nocase&#10;        $QEMU8 = &#34;QEMU CD-ROM&#34; nocase&#10;        $QEMU9 = &#34;QEMU MICRODRIVE&#34; nocase&#10;        $QEMU10 = &#34;QEMU-MEMORY&#34; nocase&#10;        $QEMU11 = &#34;QEMU_BIOS&#34; nocase&#10;        $QEMU12 = &#34;QEMU PS/2 Mouse&#34; nocase&#10;        $QEMU13 = &#34;QEMU Sun Mouse&#34; nocase&#10;        $QEMU14 = &#34;QEMU TSC2102-driven Touchscreen&#34; nocase&#10;        $QEMU15 = &#34;QEMU USB Mouse&#34; nocase&#10;        $QEMU16 = &#34;QEMU USB Tablet&#34; nocase&#10;        $QEMU17 = &#34;QEMU_VERSION&#34; nocase&#10;        $QEMU18 = &#34;QEMU USB Keyboard&#34; nocase&#10;        $QEMU19 = &#34;QEMU USB Hub&#34; nocase&#10;        $QEMU20 = &#34;QEMU USB MSD&#34; nocase&#10;        $QEMU21 = &#34;QEMU PenPartner tablet&#34; nocase&#10;        $QEMU22 = &#34;QEMUware SVGA&#34; nocase&#10;&#10;    condition:&#10;        any of them&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>結果は608検体．QEMUを検出するのは4検体だけという結果になった．<br>自分がマルウェアを開発する立場だったらこうした文字列をそのまま埋め込むことはしないし，このルールは表層的なものでしかなく，例えばQEMUの動的バイナリ変換のスケジューリングに着目したAnti-VMを検出することはできない．<br>とはいえ，おかげで現状を大雑把に把握することはできた．</p>
+<h1 id="パッカーの実態">パッカーの実態</h1><p>ついでに，<a href="http://www.softpedia.com/get/Programming/Packers-Crypters-Protectors/PEiD-updated.shtml" target="_blank" rel="external">PEiD</a>を用いてパッカーの利用状況を調べた．<br>UserDBには<a href="https://code.google.com/p/reverse-engineering-scripts/downloads/detail?name=UserDB.TXT" target="_blank" rel="external">Bob / Team PEiD signatures</a>を用いた．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># awk &#39;&#123;&#123;for(i=3;i&#60;NF;i++)printf(&#34;%s &#34;,$i) &#125;print($NF)&#125;&#39; peid.log | sort | uniq -c | sort -r&#10;  21159 Nothing found *&#10;   3065 Nothing found [Overlay] *&#10;   1412 Microsoft Visual Basic 5.0 / 6.0&#10;    916 Microsoft Visual C++ 8.0 DLL Method2&#10;    747 Microsoft Visual C++ 6.0&#10;    685 Microsoft Visual Basic 5.0 - 6.0&#10;    405 Borland Delphi 6.0 - 7.0 [Overlay]&#10;    351 UPX 0.89.6 - 1.02 / 1.05 - 2.90 -&#62; Markus &#38; Laszlo&#10;    333 Microsoft Visual C++ 7.0 [Overlay]&#10;    320 UPX 2.93 - 3.00 [LZMA] -&#62; Markus Oberhumer, Laszlo Molnar &#38; John Reiser [Overlay] *&#10;    239 Borland Delphi 6.0 - 7.0&#10;    201 Microsoft Visual C++ 6.0 [Overlay]&#10;    185 UPX 0.89.6 - 1.02 / 1.05 - 2.90 -&#62; Markus &#38; Laszlo [Overlay]&#10;    167 Nullsoft PiMP Stub [Nullsoft PiMP SFX] *&#10;     99 Microsoft Visual C++ 6.0 DLL&#10;     83 Microsoft Visual C++ 7.0 [Debug] [Overlay]&#10;     82 Nothing found [Debug] *&#10;     79 UPX 0.89.6 - 1.02 / 1.05 - 2.90 (Delphi) stub -&#62; Markus &#38; Laszlo [Overlay]&#10;     63 Microsoft Visual C++ 7.0&#10;     62 Microsoft Visual C# / Basic .NET&#10;     61 Microsoft Visual Basic 5.0 / 6.0 [Overlay]&#10;     42 Themida 1.8.x.x - 1.9.x.x -&#62; Oreans Technologies&#10;     42 ASPack 2.12 -&#62; Alexey Solodovnikov [Overlay]&#10;     38 ASProtect 1.2x - 1.3x [Registered] -&#62; Alexey Solodovnikov&#10;     32 ASPack 2.12 -&#62; Alexey Solodovnikov&#10;     31 PE Win32 DLL (0 EntryPoint)&#10;     31 Nothing found [RAR SFX] *&#10;     31 Microsoft Visual C++ 6.0 DLL [Overlay]&#10;     28 Borland C++&#10;     26 PECompact 2.x -&#62; Jeremy Collake [Overlay]&#10;     24 Morphine 1.2 - 1.3 -&#62; rootkit&#10;     23 MinGW GCC 3.x [Overlay] *&#10;     22 UPX 0.89.6 - 1.02 / 1.05 - 2.90 (Delphi) stub -&#62; Markus &#38; Laszlo&#10;     22 Microsoft Visual C# / Basic .NET [Overlay]&#10;     19 Nothing found [ZIP SFX] *&#10;     18 PECompact 2.x -&#62; Jeremy Collake&#10;     18 Microsoft Visual C++ 7.0 [Debug]&#10;     15 Borland C++ [Overlay]&#10;     14 Borland Delphi 4.0 - 5.0&#10;     14 ASProtect 1.33 - 2.1 Registered -&#62; Alexey Solodovnikov *&#10;     13 UPX 2.93 - 3.00 [LZMA] -&#62; Markus Oberhumer, Laszlo Molnar &#38; John Reiser *&#10;     13 Microsoft Visual C++ 6.0 [Debug]&#10;     13 Microsoft Visual C++ 5.0&#10;     12 UPX 0.80 - 1.24 DLL -&#62; Markus &#38; Laszlo&#10;     12 BobSoft Mini Delphi -&#62; BoB / BobSoft [Overlay] *&#10;     11 Themida 1.8.x.x -&#62; Oreans Technologies *&#10;     11 Microsoft Visual C++ Private Version 1&#10;     11 Borland Delphi 6.0&#10;     11 Borland Delphi 2.0 [Overlay]&#10;     10 BobSoft Mini Delphi -&#62; BoB / BobSoft *&#10;      9 NsPack 2.9 -&#62; North Star *&#10;      9 Microsoft Visual C++ 5.0 [Debug]&#10;      8 Microsoft Visual C++ 7.1 DLL&#10;      8 Microsoft Visual C++ 7.0 Method2&#10;      7 Xtreme-Protector v1.05 *&#10;      7 Microsoft Visual C++ 8.0 DLL Method2 [Overlay]&#10;      6 Xtreme-Protector v1.05 [Overlay] *&#10;      6 Microsoft Visual C++ 8.0 [Debug] [Debug]&#10;      6 ASProtect 1.2x - 1.3x [Registered] -&#62; Alexey Solodovnikov [Overlay]&#10;      5 nSPack 3.7 -&#62; North Star/Liu Xing Ping&#10;      5 Wise Installer Stub [Overlay] *&#10;      5 WinZip 32-bit SFX 8.x module&#10;      5 Thinstall 2.4x - 2.5x -&#62; Jitit Software [Overlay] *&#10;      5 PureBasic 4.x -&#62; Neil Hodgson *&#10;      5 PE Win32 DLL (0 EntryPoint) [Overlay]&#10;      5 Microsoft Visual C++ 7.1 DLL [Overlay]&#10;      4 tElock 0.98b1 -&#62; tE!&#10;      4 Themida 1.8.x.x - 1.9.x.x -&#62; Oreans Technologies [Overlay]&#10;      4 PureBasic 4.x -&#62; Neil Hodgson [Overlay] *&#10;      4 PC-Guard 5.0 -&#62; Blagoje Ceklic [Overlay]&#10;      4 MoleBox v2.0 *&#10;      4 Microsoft Visual C++ 8.0 [Debug]&#10;      4 Microsoft Visual C++ 5.0 [Overlay]&#10;      4 Borland Delphi 4.0 - 5.0 [Overlay]&#10;      4 Borland C++ 1999 [Overlay]&#10;      4 Borland C++ 1999&#10;      4 Armadillo 3.78 - 4.xx -&#62; Silicon Realms Toolworks&#10;      4 Armadillo 1.xx - 2.xx -&#62; Silicon Realms Toolworks&#10;      4 ASProtect 2.1x SKE -&#62; Alexey Solodovnikov&#10;      3 nSPack 3.7 -&#62; North Star/Liu Xing Ping [Overlay]&#10;      3 Upack 0.39 beta -&#62; Dwing&#10;      3 UPX 0.80 - 1.24 DLL -&#62; Markus &#38; Laszlo [Overlay]&#10;      3 Themida 1.2.0.1 (compressed) -&#62; Oreans Technologies [Overlay]&#10;      3 Themida 1.2.0.1 (compressed) -&#62; Oreans Technologies&#10;      3 NsPack 3.4 -&#62; North Star *&#10;      3 NakedPacker 1.0 - by BigBoote *&#10;      3 MinGW GCC 3.x [ZIP SFX] *&#10;      3 Microsoft Visual C++ [Overlay]&#10;      3 Microsoft Visual C++ 6.0 SPx Method 1&#10;      3 Microsoft Visual Basic 5.0 - 6.0 [Overlay]&#10;      3 Inno Setup Module Heuristic Mode [Overlay]&#10;      3 ASProtect 2.1x SKE -&#62; Alexey Solodovnikov [Overlay]&#10;      2 tElock 0.90 -&#62; tE! [Overlay]&#10;      2 Upack 0.28 - 0.399 (relocated image base) - Delphi, .NET, DLL -&#62; Dwing&#10;      2 Upack 0.24 - 0.29 beta -&#62; Dwing&#10;      2 UltraProtect 1.x -&#62; RISCO Software Inc. [Overlay]&#10;      2 UltraProtect 1.x -&#62; RISCO Software Inc.&#10;      2 UPX 0.89.6 - 1.02 / 1.05 - 2.90 -&#62; Markus &#38; Laszlo [RAR SFX]&#10;      2 SVKP 1.3x -&#62; Pavol Cerven&#10;      2 PureBasic DLL -&#62; Neil Hodgson *&#10;      2 PEtite 2.x [Level 0] -&#62; Ian Luck&#10;      2 PE-Armor V0.7X -&#62; hying *&#10;      2 PC-Guard 5.0 -&#62; Blagoje Ceklic&#10;      2 Nullsoft Install System 2.1x [Nullsoft PiMP SFX]&#10;      2 NsPack 1.4 -&#62; Liuxingping *&#10;      2 NTKrnl Security Suite -&#62; NTKrnl Team&#10;      2 Morphine 1.4 - 2.7 -&#62; Holy_Father &#38; Ratter/29A&#10;      2 MinGW GCC 3.x *&#10;      2 Microsoft Visual C++ Private Version 1 [Overlay]&#10;      2 Microsoft Visual C++ DLL Method 1&#10;      2 Microsoft Visual C++ 7.0 Method2 [Debug] [Overlay]&#10;      2 Microsoft Visual C++ 7.0 DLL Method 3&#10;      2 Microsoft Visual C++&#10;      2 Microsoft Visual Basic 5.0 / 6.0 [Debug]&#10;      2 MASM32 / TASM32&#10;      2 EXECryptor 2.2.4 -&#62; Strongbit/SoftComplete Development (h1) *&#10;      2 EXECryptor 1.x.x -&#62; SoftComplete Developement&#10;      2 Borland Delphi DLL&#10;      2 Borland Delphi 6.0 [Overlay]&#10;      2 Borland Delphi 3.0&#10;      2 Borland C++ DLL Method 2 [Overlay]&#10;      1 yoda&#39;s Protector 1.3 -&#62; Ashkbiz Danehkar&#10;      1 yoda&#39;s Protector 1.03.3 -&#62; Ashkbiz Danehkar&#10;      1 yoda&#39;s Protector 1.03.2 -&#62; Ashkbiz Danehkar&#10;      1 tElock v0.90 [Overlay] *&#10;      1 tElock v0.90 *&#10;      1 tElock 1.0 (private) -&#62; tE!&#10;      1 tElock 0.61 -&#62; tE!&#10;      1 nSpack V2.3 -&#62; LiuXingPing *&#10;      1 eXPressor 1.3.0 -&#62; CGSoftLabs&#10;      1 Winkript 1.0 -&#62; Mr. Crimson/WKT&#10;      1 WinRAR 32-bit SFX Module [RAR SFX] *&#10;      1 WWPack32 1.x -&#62; Piotr Warezak&#10;      1 Upack 0.28 - 0.399 (relocated image base) - Delphi, .NET, DLL -&#62; Dwing [Overlay]&#10;      1 Upack 0.24 - 0.29 beta -&#62; Dwing [Overlay]&#10;      1 UPX 1.03 - 1.04 -&#62; Markus &#38; Laszlo [Overlay]&#10;      1 UPX 1.03 - 1.04 -&#62; Markus &#38; Laszlo&#10;      1 UPX 0.89.6 - 1.02 / 1.05 - 2.90 -&#62; Markus &#38; Laszlo [Nullsoft PiMP SFX]&#10;      1 Themida 1.8.x.x -&#62; Oreans Technologies [Overlay] *&#10;      1 Themida -&#62; Oreans Technologies 2004 *&#10;      1 SafeDisc 2.05.030 -&#62; Macrovision [Overlay]&#10;      1 RLPack V1.11 -&#62; ap0x [Overlay] *&#10;      1 RLPack 1.20 Basic Edition [aPLib] -&#62; Ap0x *&#10;      1 RCryptor v1.6d --&#62; Vaska *&#10;      1 Pelles C 3.00, 4.00, 4.50 EXE (X86 CRT-LIB) [Overlay]&#10;      1 PKLITE32 v1.1 *&#10;      1 PEtite 2.x [Level 1/9] -&#62; Ian Luck [Overlay]&#10;      1 PEtite 2.x [Level 1/9] -&#62; Ian Luck&#10;      1 PEncrypt 4.0 Gamma / 4.0 Phi -&#62; junkcode&#10;      1 PESpin 0.3x - 1.xx -&#62; cyberbob&#10;      1 PECompact 2.xx --&#62; BitSum Technologies [Overlay] *&#10;      1 PECompact 2.xx --&#62; BitSum Technologies *&#10;      1 PECompact 1.40 - 1.45 -&#62; Jeremy Collake [Overlay]&#10;      1 PEBundle 2.0x - 2.4x-&#62; Jeremy Collake&#10;      1 PEBundle 0.2 - 3.x -&#62; Jeremy Collake&#10;      1 PE Pack 1.0 -&#62; ANAKiN [Overlay]&#10;      1 PE Pack 1.0 -&#62; ANAKiN&#10;      1 PE Crypt 1.02 -&#62; random, killa &#38; acpizer&#10;      1 Obsidium 1.3.0.4 -&#62; Obsidium Software [Overlay]&#10;      1 Nullsoft PiMP stub [Nullsoft PiMP SFX]&#10;      1 Nullsoft Install System 2.x [Nullsoft PiMP SFX]&#10;      1 NsPack 2.9 -&#62; North Star [Overlay] *&#10;      1 Nothing found [CAB SFX] *&#10;      1 NSPack 3.x -&#62; Liu Xing Ping *&#10;      1 Morphine 1.4 - 2.7 -&#62; Holy_Father &#38; Ratter/29A [Overlay]&#10;      1 MoleBox v2.0 [Overlay] *&#10;      1 Microsoft Visual C++ 8.0 [Debug] [Overlay]&#10;      1 Microsoft Visual C++ 7.0 Method2 [Overlay]&#10;      1 Microsoft Visual C++ 7.0 DLL Method 3 [Overlay]&#10;      1 Microsoft Visual C++ 6.0 [ZIP SFX]&#10;      1 Microsoft Visual C++ 6.0 SPx Method 1 [Overlay]&#10;      1 Microsoft Visual C++ 6.0 DLL [Debug]&#10;      1 Microsoft Visual C++ 4.x [Overlay]&#10;      1 Microsoft Visual C++ 4.x [Debug]&#10;      1 Microsoft Visual Basic 6.0 DLL [Overlay]&#10;      1 Microsoft CAB SFX module&#10;      1 LCC Win32 1.x -&#62; Jacob Navia&#10;      1 KByS V0.28 -&#62; shoooo [Overlay] *&#10;      1 KByS V0.22 -&#62; shoooo *&#10;      1 InstallShield AFW [Overlay]&#10;      1 Install Stub 32-bit -&#62; InstallShield [Overlay]&#10;      1 Inno Installer 4.0.5 [Inno SFX]&#10;      1 FSG 2.0 -&#62; bart/xt&#10;      1 EZIP 1.0 -&#62; Jonathan Clark [Overlay]&#10;      1 EXECryptor 1.x.x -&#62; SoftComplete Developement [Overlay]&#10;      1 CD-Cops II -&#62; Link Data Security [Overlay]&#10;      1 Borland Delphi DLL [Overlay]&#10;      1 Borland Delphi 5.0 KOL/MCK [Overlay]&#10;      1 Borland Delphi 5.0 KOL [Overlay]&#10;      1 Borland Delphi 3.0 [Overlay]&#10;      1 Borland Delphi 2.0 [Inno SFX]&#10;      1 Borland Delphi 2.0&#10;      1 Borland Component&#10;      1 Armadillo v1.71 [Overlay] *&#10;      1 Armadillo 3.78 - 4.xx -&#62; Silicon Realms Toolworks [Overlay]&#10;      1 Armadillo 2.01 -&#62; Silicon Realms Toolworks [Overlay]&#10;      1 ASProtect SKE 2.1x (exe) -&#62; Alexey Solodovnikov [Overlay] *&#10;      1 ASProtect 2.0x Registered -&#62; Alexey Solodovnikov [Overlay]&#10;      1 ASProtect 2.0x Registered -&#62; Alexey Solodovnikov&#10;      1 ASProtect 1.33 - 2.1 Registered -&#62; Alexey Solodovnikov [Overlay] *&#10;      1 ASProtect 1.2 / 1.2c-&#62; Alexey Solodovnikov&#10;      1 ASPack 2.12b -&#62; Alexey Solodovnikov&#10;      1 ASPack 1.08.03 -&#62; Alexey Solodovnikov [Overlay]&#10;      1 ASPack 1.06b / 1.061b -&#62; Alexey Solodovnikov [Overlay]&#10;      1 AHTeam EP Protector 0.3 (fake Microsoft Visual C++ 7.0) -&#62; FEUERRADER *&#10;      1 ACProtect V2.0 -&#62; risco *&#10;      1 ACProtect 2.00 - RISCO Software Inc. [Overlay]&#10;      1 ACProtect 1.40 - 1.41 - RISCO Software Inc.&#10;      1 .BJFNT 1.1b -&#62; :MARQUiS:&#10;      1 * PseudoSigner 0.2 [Microsoft Visual Basic 5.0 - 6.0] --&#62; Anorganix [Overlay] *&#10;      1 * PseudoSigner 0.2 [Microsoft Visual Basic 5.0 - 6.0] --&#62; Anorganix *</span><br></pre></td></tr></table></figure>
+<p>ほとんど検出できていないのが残念．ひときわ面倒なThemidaは11検体だった．</p>
+<h1 id="サンドボックスの実態">サンドボックスの実態</h1><p>サンドボックスの透明性が研究されている一方で，実際のマルウェアはあまり凝ったAnti-VMを備えていなかった．<br>一方で，現実のサンドボックスはどうだろうか．いくら論文で優れた手法が編み出されようが，役立てられていなければ意味がない．<br>そこで，一般に公開されているサンドボックスに対してシステム情報を取得するプログラムを挿入し，仮想マシンモニタの種類を判別できるかどうか試してみたのだが，実態はあまりにもお粗末だった．<br>詳細は言うまい．<br>だが，systeminfoコマンドとNtQuerySystemInformationだけで露見する代物ばかりだった．<br>マルウェアの解析ではなく検出を目的としたサービス，言ってしまえばVirusTotalをサンドボックスのフロントエンドとしたことが，この一因として挙げられる．<br>凝ったAnti-VMを備えたマルウェアがあまり多くないことも考えると，現状のサンドボックスで十分だということなのだろうか．</p>
+<h1 id="感想">感想</h1><p>研究をしているうちに袋小路に突入してしまい，サンドボックスの透明性やAnti Anti-VMあくまでマルウェア解析の一側面に過ぎないことを私は忘れかけていた．<br>本質は別のところにある．</p>
+<h1 id="TEQUILABOOMBOOM">TEQUILABOOMBOOM</h1><p>公開されているサンドボックスの中にTEQUILABOOMBOOMというホスト名のものがあった．<br><a href="http://www.virusradar.com/en/Win32 Kasidet.AA/description" target="_blank" rel="external">Trojan.Win32.Inject.uljv</a>や<a href="http://securitykitten.github.io/vm-checking-and-detecting/" target="_blank" rel="external">Backdoor.Win32.Agent.dkbp</a>など一部のマルウェアは，このホスト名に基づいてサンドボックスを検出することが知られている．調べてみると，<a href="http://webcache.googleusercontent.com/search?q=cache:hackforums.net/printthread.php?tid=3733605" target="_blank" rel="external">Question about keylogged PC - Printable Version</a>や<a href="http://webcache.googleusercontent.com/search?q=cache:wrb-hdtEFFkJ:www.hackforums.net/showthread.php%3Ftid%3D4522377%26page%3D16+&amp;cd=9&amp;hl=ja&amp;ct=clnk&amp;gl=jp" target="_blank" rel="external">[FUD][FREE] Agent Tesla [Keylogger] [ClipboardLogger] [On-Screen Keyboard Logger] - Page 16</a>など，2013年の時点で情報が攻撃者の間で共有されている．</p>
+<blockquote>
+<p>So I managed to crypt a keylogger and have my victim download it through dropbox (I think). I haven’t received any logs yet but it shows that I’m connected to a computer from france which is janettedoe@TEQUILABOOMBOOM. I’m not sure how this is possible, or if it’s some sort of error. Does anybody know what this is? My keylogger hasn’t been sent anywhere other than to my targets email. </p>
+</blockquote>
+<p>どうやらこれはGoogleが動かしているCuckoo Sandboxが用いるホスト名らしく，攻撃者によるサンドボックスの実態調査が進んでいることを伺わせる．<br>サンドボックスの透明性について拘りすぎる必要はないにせよ，その情報が攻撃者の手に渡ることを前提としたサービスについては検討の余地がある．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>Gabriel Negreira Barbosa, Rodrigo Rubira Branco,<br>“<a href="https://www.blackhat.com/docs/us-14/materials/us-14-Branco-Prevalent-Characteristics-In-Modern-Malware.pdf" target="_blank" rel="external">Prevalent Characteristics in Modern Malware[PDF]</a>,”<br>Black Hat USA 2014.</li>
+<li>Gábor Pék, Levente Buttyán, Boldizsár Bencsáth,<br>“<a href="http://www.profsandhu.com/cs6393_s14/csur_hw_virt_2013.pdf" target="_blank" rel="external">A Survey of Security Issues in Hardware Virtualization[PDF]</a>,”<br>ACM Computing Surveys, vol. 45, issue. 3, 2013.</li>
+<li>“VirusShare.com,” <a href="http://virusshare.com/" target="_blank" rel="external">http://virusshare.com/</a></li>
+<li><a href="http://intelreport.mandiant.com/Mandiant_APT1_Report.pdf" target="_blank" rel="external">http://intelreport.mandiant.com/Mandiant_APT1_Report.pdf[PDF]</a></li>
+<li>“YARA - The pattern matching swiss knife for malware researchers,” <a href="http://plusvic.github.io/yara/" target="_blank" rel="external">http://plusvic.github.io/yara/</a></li>
+<li>“PEiD Download - Softpedia,” <a href="http://www.softpedia.com/get/Programming/Packers-Crypters-Protectors/PEiD-updated.shtml" target="_blank" rel="external">http://www.softpedia.com/get/Programming/Packers-Crypters-Protectors/PEiD-updated.shtml</a></li>
+<li>“Win32/Kasidet.AA | ESET Virusradar,” <a href="http://www.virusradar.com/en/Win32 Kasidet.AA/description" target="_blank" rel="external">http://www.virusradar.com/en/Win32 Kasidet.AA/description</a></li>
+<li>“VM Checking and Detecting Adventures in Security,” <a href="http://securitykitten.github.io/vm-checking-and-detecting/" target="_blank" rel="external">http://securitykitten.github.io/vm-checking-and-detecting/</a></li>
+<li>“Question about keylogged PC - Printable Version,” <a href="http://webcache.googleusercontent.com/search?q=cache:hackforums.net/printthread.php?tid=3733605" target="_blank" rel="external">http://webcache.googleusercontent.com/search?q=cache:hackforums.net/printthread.php?tid=3733605</a></li>
+<li>“[FUD][FREE] Agent Tesla [Keylogger] [ClipboardLogger] [On-Screen Keyboard Logger] - Page 16],” <a href="http://webcache.googleusercontent.com/search?q=cache:wrb-hdtEFFkJ:www.hackforums.net/showthread.php%3Ftid%3D4522377%26page%3D16+&amp;cd=9&amp;hl=ja&amp;ct=clnk&amp;gl=jp" target="_blank" rel="external">http://webcache.googleusercontent.com/search?q=cache:wrb-hdtEFFkJ:www.hackforums.net/showthread.php%3Ftid%3D4522377%26page%3D16+&amp;cd=9&amp;hl=ja&amp;ct=clnk&amp;gl=jp</a></li>
+<li>Katsunari Yoshioka, Yoshihiko Hosobuchi, Tatsunori Orii, Tsutomu Matsumoto,<br>“<a href="http://ieeexplore.ieee.org/xpl/login.jsp?tp=&amp;arnumber=5598065&amp;url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D5598065" target="_blank" rel="external">Vulnerability in Public Malware Sandbox Analysis Systems</a>,”<br>IEEE/IPSJ 12th International Symposium on Applications and the Internet, pp. 265-268, 2010.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/03/14/sandbox-transparency-in-the-wild/" data-id="cigrq72t200108wu3ih9yg0lw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/04/03/pin-to-pemu/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          PinからPEMUへ
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/02/24/before-c-constructor/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">__attribute__((constructor))が呼ばれる前に</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 ntddk<br>
+      <a href="https://github.com/steven5538/hexo-theme-athena" target="_blank">Athena</a> by <a href="http://steven5538.tw" target="_blank">Steven5538</a> | Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>QEMUの動的バイナリ変換におけるボトルネック | 一生あとで読んでろ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="はじめにQEMUは動的バイナリ変換を用いた完全仮想化式のハイパーバイザである．QEMUは実行対象の命令列を逆アセンブルし，いちど中間表現に変換したうえで，ホストのアーキテクチャの命令列に変換して実行する．これによりQEMUは異なるアーキテクチャのバイナリを実行することができる．しかしQEMUは遅かったため，アクセラレータとしてkqemuが開発された．kqemuはユーザーモードのコードをホストのCP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="QEMUの動的バイナリ変換におけるボトルネック">
+<meta property="og:url" content="http://ntddk.github.io/2015/07/13/qemu-dbt-bottleneck/index.html">
+<meta property="og:site_name" content="一生あとで読んでろ">
+<meta property="og:description" content="はじめにQEMUは動的バイナリ変換を用いた完全仮想化式のハイパーバイザである．QEMUは実行対象の命令列を逆アセンブルし，いちど中間表現に変換したうえで，ホストのアーキテクチャの命令列に変換して実行する．これによりQEMUは異なるアーキテクチャのバイナリを実行することができる．しかしQEMUは遅かったため，アクセラレータとしてkqemuが開発された．kqemuはユーザーモードのコードをホストのCP">
+<meta property="og:image" content="http://ntddk.github.io/image/flamegraphs-qemu-system-arm.png">
+<meta property="og:updated_time" content="2015-09-15T08:45:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="QEMUの動的バイナリ変換におけるボトルネック">
+<meta name="twitter:description" content="はじめにQEMUは動的バイナリ変換を用いた完全仮想化式のハイパーバイザである．QEMUは実行対象の命令列を逆アセンブルし，いちど中間表現に変換したうえで，ホストのアーキテクチャの命令列に変換して実行する．これによりQEMUは異なるアーキテクチャのバイナリを実行することができる．しかしQEMUは遅かったため，アクセラレータとしてkqemuが開発された．kqemuはユーザーモードのコードをホストのCP">
+<meta name="twitter:creator" content="@ntddk">
+  
+    <link rel="alternative" href="/atom.xml" title="一生あとで読んでろ" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">一生あとで読んでろ</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技術ブログ</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-home-icon" class="nav-icon" href="/"></a>
+        
+          <a id="nav-about-icon" class="nav-icon" href="/about"></a>
+        
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+      </nav>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-qemu-dbt-bottleneck" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      QEMUの動的バイナリ変換におけるボトルネック
+    </h1>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-07-13T06:00:00.000Z" itemprop="datePublished">07-13-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p>QEMUは動的バイナリ変換を用いた完全仮想化式のハイパーバイザである．<br>QEMUは実行対象の命令列を逆アセンブルし，いちど中間表現に変換したうえで，ホストのアーキテクチャの命令列に変換して実行する．これによりQEMUは異なるアーキテクチャのバイナリを実行することができる．<br>しかしQEMUは遅かったため，アクセラレータとしてkqemuが開発された．<br>kqemuはユーザーモードのコードをホストのCPUに実行させる準仮想化ドライバであり，やがてKVMへと変貌を遂げた．さらにKVMはハードウェアによる仮想化支援機能を用いることで，さらなる高速化を実現した．もはやKVMにおいてQEMUはハードウェアのエミュレーションにしか用いられていない．<br>かわいそうなQEMU！<br>しかしQEMUの活躍する場面はいまだ多く残されている．たとえばマルウェア解析で．<br>それでも遅いのは困りものだ．QEMUはどこが遅いのだろうか．<br>ここでは<code>perf</code>を用いてQEMUのボトルネックを<strong>雑に</strong>特定する．</p>
+<h1 id="実験">実験</h1><p>今回はARMエミュレーションについて調査した．ホスト・ゲストともOSにはUbuntu 12.04(3.2.0-23-generic)を用いた．<code>perf</code>でQEMUのプロファイリングを行っている間，ゲストではgccを用いてコンパイルを実行した．</p>
+<ul>
+<li><p>ARM版Ubuntu 12.04のインストール</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get install qemu&#10;# wget http://odroid.us/odroid/users/osterluk/qemu-example/qemu-example.tgz&#10;# tar xzf qemu-example.tgz ./zImage&#10;# wget http://releases.linaro.org/12.04/ubuntu/precise-images/developer/linaro-precise-developer-20120426-86.tar.gz&#10;# tar xzf linaro-precise-developer-20120426-86.tar.gz&#10;# qemu-img create -f raw rootfs.img 3G&#10;# mkfs.ext3 rootfs.img&#10;# mkdir mnt&#10;# sudo mount -o loop rootfs.img mnt&#10;# rsync -a binary/boot/filesystem.dir/ mnt/&#10;# sudo umount mnt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>QEMUのビルド</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get build-dep qemu&#10;# git clone git://git.qemu-project.org/qemu.git&#10;# cd qemu&#10;# git log | grep &#39;^commit&#39; | head -1 | awk &#39;&#123;print $2&#125;&#39;&#10;6169b60285fe1ff730d840a49527e721bfb30899&#10;# git submodule update --init dtc&#10;# git submodule update --init pixman&#10;# ./configure --extra-ldflags=-pg --target-list=arm-softmmu&#10;# make</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>perf</code>のインストール</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get install linux-tools&#10;# sudo echo 0 &#62; /proc/sys/kernel/perf_event_paranoid</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>perf</code>によるプロファイリング</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># perf record -a -g -F100000 qemu/arm-softmmu/qemu-system-arm -M vexpress-a9 -m 512 -kernel zImage -sd rootfs.img -append &#34;root=/dev/mmcblk0 rw physmap.enabled=0 console=ttyAMA0&#34; -monitor stdio&#10;WARNING: Image format was not specified for &#39;../../rootfs.img&#39; and probing guessed raw.&#10;         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.&#10;         Specify the &#39;raw&#39; format explicitly to remove the restrictions.&#10;QEMU 2.3.90 monitor - type &#39;help&#39; for more information&#10;(qemu) audio: Could not init `oss&#39; audio driver&#10;&#10;(qemu) q&#10;[ perf record: Woken up 37 times to write data ]&#10;[ perf record: Captured and wrote 9.465 MB perf.data (~413514 samples) ]&#10;&#10;&#10;Failed to open /tmp/perf-6993.map, continuing without symbols&#10;Failed to open [vmxnet], continuing without symbols&#10;Failed to open [vmci], continuing without symbols&#10;Failed to open [vsock], continuing without symbols&#10;no symbols found in /bin/dash, maybe install a debug package?&#10;no symbols found in /usr/bin/xargs, maybe install a debug package?&#10;no symbols found in /usr/bin/updatedb.mlocate, maybe install a debug package?&#10;no symbols found in /usr/bin/dpkg-query, maybe install a debug package?</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Flame Graphsによる可視化</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># wget https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl&#10;# wget https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl&#10;# perf script&#62; perf_data.txt&#10;# perl stackcollapse-perf.pl perf_data.txt|perl flamegraph.pl --title &#34;Flame Graphs - qemu-system-arm&#34; &#62; flamegraphs-qemu-system-arm.svg</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><code>perf</code>の結果をFlame Graphsを用いて可視化すると下図のようになった．Flame GraphsはUSENIX LISA’2013にて発表された可視化ツールである．</p>
+<p><img src="/image/flamegraphs-qemu-system-arm.png"></p>
+<p>x軸は時系列，y軸はコールスタックを意味する．横幅が広く上位に位置する関数がボトルネックであるといえる．<br>よってボトルネックは<code>clear_page()</code>すなわちTCGの各関数で発生しているページフォルトである．</p>
+<h1 id="おわりに">おわりに</h1><p>ページフォルトだけは勘弁してほしい．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>“perf + Flame Graphs で Linux カーネル内のボトルネックを特定する - ablog,” <a href="http://d.hatena.ne.jp/yohei-a/20150706/1436208007" target="_blank" rel="external">http://d.hatena.ne.jp/yohei-a/20150706/1436208007</a></li>
+<li>Brendan Gregg, “<a href="https://www.usenix.org/conference/lisa13/technical-sessions/plenary/gregg" target="_blank" rel="external">Blazing Performance with Flame Graphs</a>,” Proceedings of the 27th Large Installation System Administration Conference, USENIX LISA’13, Washington, D.C., USA, 2013.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/07/13/qemu-dbt-bottleneck/" data-id="cigrq72t200128wu30inuqgv9" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/08/16/automated-malware-analysis-using-decaf-in-seccamp15/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          DECAFによるマルウェア自動解析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/04/04/semiotics-of-programming/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">そろそろ『記号と再帰』について一言言っておくか</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 ntddk<br>
+      <a href="https://github.com/steven5538/hexo-theme-athena" target="_blank">Athena</a> by <a href="http://steven5538.tw" target="_blank">Steven5538</a> | Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+  </div>
+</body>
+</html>

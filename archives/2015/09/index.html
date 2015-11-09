@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Archives: 2015/9 | 一生あとで読んでろ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="一生あとで読んでろ">
+<meta property="og:url" content="http://ntddk.github.io/archives/2015/09/index.html">
+<meta property="og:site_name" content="一生あとで読んでろ">
+<meta property="og:description">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一生あとで読んでろ">
+<meta name="twitter:description">
+<meta name="twitter:creator" content="@ntddk">
+  
+    <link rel="alternative" href="/atom.xml" title="一生あとで読んでろ" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">一生あとで読んでろ</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技術ブログ</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-home-icon" class="nav-icon" href="/"></a>
+        
+          <a id="nav-about-icon" class="nav-icon" href="/about"></a>
+        
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+      </nav>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-xen-add-hypercall" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2015/09/14/xen-add-hypercall/">Xenにハイパーコールを追加する</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-09-14T13:00:00.000Z" itemprop="datePublished">09-14-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p>いわゆるVM床抜きをXenで試す．</p>
+<h1 id="Xenのインストール">Xenのインストール</h1><p>いつかインストールしたXen 4.4.1を用いた．</p>
+<ul>
+<li><p>依存パッケージ</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get install wget git bcc bin86 gawk bridge-utils iproute libcurl3 libcurl4-openssl-dev bzip2 module-init-tools pciutils-dev build-essential make gcc libc6-dev libc6-dev-i386 linux-libc-dev zlib1g-dev python python-dev python-twisted python-gevent libncurses5-dev patch libvncserver-dev libssl-dev libsdl-dev iasl libbz2-dev e2fslibs-dev git-core uuid-dev ocaml libx11-dev bison flex ocaml-findlib xz-utils gettext libyajl-dev libpixman-1-dev libaio-dev libfdt-dev cabextract libglib2.0-dev autoconf automake libtool check libjansson-dev libfuse-dev</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Xenのビルド</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># wget http://bits.xensource.com/oss-xen/release/4.4.1/xen-4.4.1.tar.gz&#10;# tar xzvf xen-4.4.1.tar.gz&#10;# cd ./xen-4.4.1&#10;# export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu&#10;# ./configure --enable-systemd --enable-githttp&#10;# make -j4 dist-xen&#10;# make -j4 dist-tools</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>DomUの設定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo su&#10;# make -j4 install-xen&#10;# make -j4 install-tools&#10;# echo &#34;GRUB_CMDLINE_XEN_DEFAULT=\&#34;dom0_mem=4096M,max:4096M dom0_max_vcpus=4 dom0_vcpus_pin=true hap_1gb=false hap_2mb=false\&#34;&#34; &#62;&#62; /etc/default/grub&#10;# echo &#34;/usr/local/lib&#34; &#62; /etc/ld.so.conf.d/xen.conf&#10;# ldconfig&#10;# update-grub&#10;# echo &#34;none /proc/xen xenfs defaults,nofail 0 0&#34; &#62;&#62; /etc/fstab&#10;# echo &#34;xen-evtchn&#34; &#62;&#62; /etc/modules&#10;# echo &#34;xen-privcmd&#34; &#62;&#62; /etc/modules&#10;# update-rc.d xencommons defaults 19 18&#10;# update-rc.d xendomains defaults 21 20&#10;# update-rc.d xen-watchdog defaults 22 23&#10;# reboot</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>動作確認</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo xen-detect&#10;Running in PV context on Xen v4.4.</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="ハイパーコールの追加">ハイパーコールの追加</h1><p>予約済みの<code>__HYPERVISOR_xc_reserved_op</code>に代わって39番目のハイパーコールを定義する．</p>
+<ul>
+<li><p>xen-4.4.1/xen/include/public/xen.h</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@@ -100,6 +100,7 @@&#10; #define __HYPERVISOR_domctl               36&#10; #define __HYPERVISOR_kexec_op             37&#10; #define __HYPERVISOR_tmem_op              38&#10;+#define __HYPERVISOR_rdtsc_hypercall      39&#10; #define __HYPERVISOR_xc_reserved_op       39 /* reserved for XenClient */&#10;&#10; /* Architecture-specific hypercall definitions. */</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>xen-4.4.1/xen/arch/x86/x86_64/entry.S</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@@ -757,6 +757,7 @@&#10;         .quad do_domctl&#10;         .quad do_kexec_op&#10;         .quad do_tmem_op&#10;+        .quad do_rdtsc_hypercall&#10;         .rept __HYPERVISOR_arch_0-((.-hypercall_table)/8)&#10;         .quad do_ni_hypercall&#10;         .endr&#10;@@ -805,6 +806,7 @@&#10;         .byte 1 /* do_domctl            */&#10;         .byte 2 /* do_kexec             */&#10;         .byte 1 /* do_tmem_op           */&#10;+        .byte 1 /* do_rdtsc_hypercall   */&#10;         .rept __HYPERVISOR_arch_0-(.-hypercall_args_table)&#10;         .byte 0 /* do_ni_hypercall      */&#10;         .endr</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>xen-4.4.1/xen/include/asm-x86/hypercall.h</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@@ -110,4 +110,8 @@&#10; arch_compat_vcpu_op(&#10;     int cmd, struct vcpu *v, XEN_GUEST_HANDLE_PARAM(void) arg);&#10;&#10;+extern int&#10;+do_rdtsc_hypercall(&#10;+    char* str);&#10;+&#10; #endif /* __ASM_X86_HYPERCALL_H__ */</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>xen-4.4.1/xen/arch/x86/traps.c</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@@ -3762,6 +3762,14 @@&#10;     __domain_crash_synchronous();&#10; &#125;&#10;&#10;+int do_rdtsc_hypercall(char* str)&#10;+&#123;&#10;+    unsigned long long tsc;&#10;+    __asm__ volatile(&#34;rdtsc&#34; : &#34;=A&#34; (tsc));&#10;+    printk(&#34;str: %s, tsc: %llu\n&#34;, str, tsc);&#10;+    return 0;&#10;+&#125;&#10;+&#10; /*&#10;  * Local variables:&#10;  * mode: C</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>このハイパーコールは引数として受け取った文字列をTSCの値とともにコンソールログに出力する．有効化するには再度<code>make -j4 dist-xen</code>して再起動するとよい．</p>
+<h1 id="ハイパーコールの呼び出し">ハイパーコールの呼び出し</h1><p>ハイパーコールの呼び出しはlibxcやlibxlによって抽象化されているが，ここではそれらが内部で参照している/proc/xen/privcmdに対してioctlを発行してみる．</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// rdtsc_hypercall.c</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;stdio.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;stdlib.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;errno.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;sys/ioctl.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;linux/types.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;fcntl.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;string.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;xenctrl.h&gt;</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> &lt;xen/sys/privcmd.h&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"input the param"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span> *message = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>)*(<span class="built_in">strlen</span>(argv[<span class="number">1</span>])+<span class="number">1</span>));</span><br><span class="line">    <span class="built_in">strcpy</span>(message, argv[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">privcmd_hypercall_t</span> my_hypercall = &#123;</span><br><span class="line">            <span class="number">39</span>, <span class="comment">// __HYPERVISOR_rdtsc_hypercall</span></span><br><span class="line">            &#123;(__u64)message, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>&#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> fd = open(<span class="string">"/proc/xen/privcmd"</span>, O_RDWR);</span><br><span class="line">    <span class="keyword">if</span>(fd &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"cannot open /proc/xen/privcmd"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!ioctl(fd, IOCTL_PRIVCMD_HYPERCALL, &amp;my_hypercall))</span><br><span class="line">    &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"cannot call do_rdtsc_hypercall"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>このプログラムを実行するとハイパーコールが呼び出されたことが分かる．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># gcc -o rdtsc_hypercall rdtsc_hypercall.c&#10;# sudo ./rdtsc_hypercall test&#10;# sudo xl dmesg | less&#10;(XEN) str: test, tsc: 2835883086</span><br></pre></td></tr></table></figure>
+<h1 id="おわりに">おわりに</h1><p>Xenに追加したハイパーコールを呼び出すことができた．<br>さしあたってはMirage OSからこのハイパーコールを呼び出す方法を知りたいのだが．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>“C77 - paravirt.org - circle,” <a href="http://circle.paravirt.org/c77" target="_blank" rel="external">http://circle.paravirt.org/c77</a></li>
+<li>“笑遍世界 &gt;&gt; Xen添加一个hypercall,” <a href="http://smilejay.com/2012/05/xen_hypercall/" target="_blank" rel="external">http://smilejay.com/2012/05/xen_hypercall/</a></li>
+<li>“Making a New Hypercall &amp;&amp; Invoking It from userland via Privcmd | Sanity of Fortunate Fool” <a href="http://sanifool.com/2013/02/08/invoking-an-hypercall-from-userland-via-privcmd/" target="_blank" rel="external">http://sanifool.com/2013/02/08/invoking-an-hypercall-from-userland-via-privcmd/</a></li>
+<li>“CPUクロックに基づく相対時刻の計測,” <a href="http://www.02.246.ne.jp/~torutk/cxx/clock/cpucounter.html" target="_blank" rel="external">http://www.02.246.ne.jp/~torutk/cxx/clock/cpucounter.html</a></li>
+<li>“libxenctrlのメモ - はわわーっ,” <a href="http://yomi322.hateblo.jp/entry/2015/02/19/235522" target="_blank" rel="external">http://yomi322.hateblo.jp/entry/2015/02/19/235522</a></li>
+<li>“libxenctrlのメモ #2 - はわわーっ,” <a href="http://yomi322.hateblo.jp/entry/2015/02/20/212853" target="_blank" rel="external">http://yomi322.hateblo.jp/entry/2015/02/20/212853</a></li>
+<li>“xenのハイパーコールを呼んでみる - はわわーっ,” <a href="http://yomi322.hateblo.jp/entry/2015/02/21/145334" target="_blank" rel="external">http://yomi322.hateblo.jp/entry/2015/02/21/145334</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/09/14/xen-add-hypercall/" data-id="cigrq72pl000a8wu3k1wbynju" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+  
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2015 ntddk<br>
+      <a href="https://github.com/steven5538/hexo-theme-athena" target="_blank">Athena</a> by <a href="http://steven5538.tw" target="_blank">Steven5538</a> | Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/script.js" type="text/javascript"></script>
+  </div>
+</body>
+</html>
