@@ -76,24 +76,6 @@
       
         <p>　本稿は<a href="http://www.adventar.org/calendars/784" target="_blank" rel="external">情報セキュリティ系論文紹介 Advent Calendar 2015</a>の11日目である．</p>
 <h1 id="TL;DR:">TL;DR:</h1><p>　テイント解析（taint analysis）やプログラムスライシング（program slicing），記号的実行（symbolic execution）やファジング（fuzzing）といったバイナリ解析技術を総動員して，マルウェアが通信するC&amp;Cサーバのフィンガープリントを<strong>C&amp;Cサーバと通信せずとも</strong>生成する手法—AUTOPROBE[1]を紹介する．</p>
-<h1 id="用語解説">用語解説</h1><ul>
-<li>テイント解析<ul>
-<li>任意のデータにその出自や属性を示すタグを設定し，伝搬ルールにしたがって他のデータにタグを伝搬させることで，データ間の依存関係を分析する手法</li>
-</ul>
-</li>
-<li>プログラムスライシング<ul>
-<li>任意のデータに影響を与える処理部分をプログラムから抽出する手法</li>
-</ul>
-</li>
-<li>記号的実行<ul>
-<li>プログラムの分岐条件を充足論理問題として制約を充足する解を得る手法</li>
-</ul>
-</li>
-<li>ファジング<ul>
-<li>開発者が意図しない入力を自動生成してプログラムに与えることで脆弱性を顕在化させる手法</li>
-</ul>
-</li>
-</ul>
 <h1 id="背景">背景</h1><p>　マルウェアによるサイバー犯罪はC&amp;Cサーバやコンフィグファイルの配布元，二次検体の配布元など様々な悪性サーバ（malicious server）からなるインフラによって支えられている．攻撃者はこれらの悪性サーバを頻繁に閉鎖・移転させて対策から逃れようとする．とりわけ攻撃者の命令を送信してマルウェアの動作を決定するC&amp;Cサーバはその後の攻撃の起点となるため早期発見が望ましい．したがって不審なサーバがC&amp;Cサーバかどうか判定するフィンガープリントが必要となる．<br>　しかしながら従来のフィンガープリント生成手法にはC&amp;Cサーバとの長期的な通信を前提としている[2]，サーバとして動作するマルウェアを前提としている[3]といった問題点があった．</p>
 <h1 id="問題定義">問題定義</h1><p>　あるマルウェアのファミリFに属する検体Pを入力として受け取り，Fが用いるC&amp;Cサーバのフィンガープリントφを出力することがAUTOPROBEの目的である．C&amp;Cサーバ側のコードは参照できず，マルウェアの検体はシンボル情報やソースコードを含んでいなくともよい．またマルウェアは複数のリクエストをC&amp;Cサーバに送信するものとする．</p>
 <h1 id="提案手法">提案手法</h1><p>　あるサーバにマルウェアと同様のリクエストを送って，マルウェアがコマンドとして解釈できるレスポンスが返ってきたら，そのサーバは疑いようもなくC&amp;Cサーバである—AUTOPROBEの鍵となる発想は至極単純だ．<br>　AUTOPROBEは検体の命令・API・システムコールの実行を—おそらくQEMUによって—トレースし，リクエストを生成する処理とレスポンスをハンドルする処理をそれぞれマルウェアから抽出する．つづいて前者によって不審なサーバに対するリクエストを生成し，後者によってレスポンスをハンドルする．レスポンスハンドリングの可否をもってフィンガープリントとするから，その処理の抽出さえできれば不審なサーバがC&amp;Cサーバかどうか判定するまで実際のC&amp;Cサーバと通信する必要はない—でもどうやって？</p>
@@ -127,17 +109,35 @@
 <p><img src="/image/autoprobe/comparison.png"></p>
 <p>　CYBERPROBEが40件のC&amp;Cサーバを特定しているのにたいしてAUTOPROBEは54件のC&amp;Cサーバを特定している．<br>　高度化するマルウェアが通信内容を難読化・秘匿する傾向にあることを鑑みると，CYBERPROBEのようにネットワーク通信の特徴量を用いる手法よりもAUTOPROBEのようにバイナリ解析を応用した手法こそ吟味されるべきだろう．</p>
 <h1 id="感想">感想</h1><p>　AUTOPROBEは折しも私が昨年度のインターンシップでほとんど同じようなテーマに取り組んでいたとき発表された．テイント解析のソースを受信データではなくシステムコールの結果に設定することで，リクエストのセマンティクスを復元しようとするAUTOPROBEの発想は野心的であり，さまざまなバイナリ解析技術を結集して未知のC&amp;Cサーバを発見する手際は鮮やかというほかない．<br>　私は来年書くことになる卒業論文のテーマとして，インターネット接続のない閉環境におけるマルウェアの分析に本手法を応用できないか検討している．Ryzhykら[4]はデバイスドライバと環境（デバイスおよびOS）との相互作用を有限オートマトンを用いて表現し，デバイスドライバを半自動的に合成する手法を提案している．問題領域は異なるがこうした手法も検討したい．</p>
+<h1 id="用語解説">用語解説</h1><ul>
+<li>テイント解析<ul>
+<li>任意のデータに設定したタグをルールにしたがって伝搬させることで，データ間の依存関係を分析する手法</li>
+</ul>
+</li>
+<li>プログラムスライシング<ul>
+<li>任意のデータに依存する処理部分をプログラムから抽出する手法</li>
+</ul>
+</li>
+<li>記号的実行<ul>
+<li>プログラムの分岐条件を充足論理問題とし，制約を充足する解を得る手法</li>
+</ul>
+</li>
+<li>ファジング<ul>
+<li>開発者が意図しない入力を自動生成してプログラムに与えることで脆弱性を顕在化させる手法</li>
+</ul>
+</li>
+</ul>
 <h1 id="参考文献">参考文献</h1><ul>
 <li>[1]Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
-<li>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium, 2014.</li>
-<li>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security, 2012.</li>
+<li>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium (NDSS’14), 2014.</li>
+<li>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security (CCS’12), 2012.</li>
 <li>[4]Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
 </ul>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="cihyi2uvj001e4sos5dfjfhre" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="cii1a7ypb001eswos5zgvyhav" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -204,7 +204,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/11/09/is-linear-obfuscation-a-threat/" data-id="cihyi2uvf001a4soszv5vwq8g" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/11/09/is-linear-obfuscation-a-threat/" data-id="cii1a7ypb001aswosw4igeivt" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -257,7 +257,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/08/16/automated-malware-analysis-using-decaf-in-seccamp15/" data-id="cihyi2uvl001h4sos2qli4jv5" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/08/16/automated-malware-analysis-using-decaf-in-seccamp15/" data-id="cii1a7ypb001hswos37rvbs17" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -311,7 +311,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cihyi2uuj000j4sospqldifyh" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cii1a7yog000jswosimpsos7h" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -375,7 +375,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cihyi2uuo000o4sosoq72ez24" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cii1a7yog000oswos5xul6doo" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -433,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cihyi2uug000c4soszk8swee5" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cii1a7yog000cswosh34f11lw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -508,7 +508,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cihyi2uur000r4sosmsbsf19g" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cii1a7yog000rswosavvm73k0" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
