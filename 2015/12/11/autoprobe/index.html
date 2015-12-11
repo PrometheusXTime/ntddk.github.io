@@ -24,7 +24,7 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/localized.png">
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/horizontal.png">
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/comparison.png">
-<meta property="og:updated_time" content="2015-12-15T06:08:16.630Z">
+<meta property="og:updated_time" content="2015-12-11T06:11:05.560Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="マルウェアの動的解析に基づくC&Cサーバの探索">
 <meta name="twitter:description" content="本稿は情報セキュリティ系論文紹介 Advent Calendar 2015の11日目である．
@@ -135,7 +135,7 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 <p>　C&amp;Cサーバと接続せずとも<code>HTTP/1.1 200 OK</code>を与えればBamitalのハンドラは分析できるとのこと．<br>　また標的型攻撃に用いられるTaidoorのリクエストは<code>GetAdaptersInfo</code>によって得たMACアドレスに依存する値を含んでいた．これによってTaidoorのC&amp;Cサーバは感染端末のみで動作するレスポンスを送信していたようだ．<br>　ドライブバイダウンロード検体であるSalityのC&amp;Cサーバは<code>spm/s_tasks.php</code>, <code>logos_s.gif</code>, <code>231013_d.exe</code>というファイルをレスポンスに含んでいた．AUTOPROBEはこれらのファイルの存在するサーバをSalityのC&amp;Cサーバとみなす．などなど．</p>
 <h2 id="限定的な探索">限定的な探索</h2><p>　Malware Domain Listに含まれる9,500アドレスの近傍/24サブネット・2.6Mアドレスのスキャン結果：</p>
 <p><img src="/image/autoprobe/localized.png" width="60%" height="60%"></p>
-<p>　VirusTotal, Malware Domain List, URLQueryに発見されていないC&amp;Cサーバを特定できている．</p>
+<p>　VirusTotal, Malware Domain List, そしてURLQueryに発見されていないC&amp;Cサーバを特定できている．</p>
 <h2 id="インターネット全体の探索">インターネット全体の探索</h2><p>　ここではBGPからインターネット全体をスキャンし，7,100万ものHTTPサーバを発見している：</p>
 <p><img src="/image/autoprobe/horizontal.png"></p>
 <p>　このうちマルウェア3ファミリのC&amp;Cサーバをどれだけ発見できるかCYBERPROBEと比較した結果：</p>
@@ -143,14 +143,10 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 <p>　CYBERPROBEが40件のC&amp;Cサーバを特定しているのにたいしてAUTOPROBEは54件のC&amp;Cサーバを特定している．<br>　高度化するマルウェアが通信内容を難読化・秘匿する傾向にあることを鑑みると，CYBERPROBEのようにネットワーク通信の特徴量を用いる手法よりもAUTOPROBEのようにバイナリ解析を応用した手法こそ吟味されるべきだろう．</p>
 <h1 id="感想">感想</h1><p>　AUTOPROBEは折しも私が昨年度のインターンシップでほとんど同じようなテーマに取り組んでいたとき発表された．テイント解析のソースを受信データではなくシステムコールの結果に設定することで，リクエストのセマンティクスを復元しようとするAUTOPROBEの発想は野心的であり，さまざまなバイナリ解析技術を結集して未知のC&amp;Cサーバを発見する手際は鮮やかというほかない．<br>　私は来年書くことになる卒業論文のテーマとして，インターネット接続のない閉環境におけるマルウェアの分析に本手法を応用できないか検討している．Ryzhykら[4]はデバイスドライバと環境（デバイスおよびOS）との相互作用を有限オートマトンを用いて表現し，デバイスドライバを半自動的に合成する手法を提案している．問題領域は異なるがこうした手法も検討したい．</p>
 <h1 id="参考文献">参考文献</h1><ul>
-<li><p>[1]Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</p>
-</li>
-<li><p>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium, 2014.</p>
-</li>
-<li><p>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security, 2012.</p>
-</li>
-<li><p>[4]Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</p>
-</li>
+<li>[1]Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
+<li>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium, 2014.</li>
+<li>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security, 2012.</li>
+<li>[4]Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
 </ul>
 
       
