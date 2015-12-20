@@ -57,6 +57,67 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-xen-libvmi" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2015/01/31/xen-libvmi/">XenとLibVMI</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-01-31T14:39:37.000Z" itemprop="datePublished">01-31-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p><a href="https://github.com/libvmi/libvmi" target="_blank" rel="external">LibVMI</a>はXenならびにKVMを対象としたVMIライブラリである．ここでは，その基盤と応用についてまとめる．</p>
+<h1 id="libxc">libxc</h1><p>そもそもXenにおけるVMIの研究ではかねてより，各ドメインの制御機能ないしハイパーコールを提供するlibxcというライブラリが用いられてきた．libxcという名称はthe Xen Control libraryの略称であり，Xenによって公式に提供されている(<code>tools/libxc/</code>)．なお，libxcとして提供されている関数は<code>xc_</code>というprefixを備えている．<br>このうち，VMIと密接に関連があるのは<code>xenctrl.h</code>と<code>xenguest.h</code>である．なかでも<code>xenctrl.h</code>はlibxenctrlとも呼ばれ，PFNの参照やハイパーコールの追加などの機能が提供されている．<br>LibVMIのソースコードにgrepを掛けると，libxcに由来する構造体と関数が多く用いられていることが分かる．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">% grep -rhoe &#34;xc_[a-zA-z]*_[a-zA-z]*&#34; . | grep -v &#34;]&#34; | sort | uniq&#10;xc_domain_debug_control&#10;xc_domain_decrease_reservation_exact&#10;xc_domain_getinfo&#10;xc_domain_getinfolist&#10;xc_domain_hvm_getcontext&#10;xc_domain_hvm_getcontext_partial&#10;xc_domain_hvm_setcontext&#10;xc_domain_maximum_gpfn&#10;xc_domain_pause&#10;xc_domain_populate_physmap_exact&#10;xc_domain_set_access_required&#10;xc_domain_unpause&#10;xc_domaininfo_t&#10;xc_dominfo_t&#10;xc_evtchn_bind_interdomain&#10;xc_evtchn_close&#10;xc_evtchn_fd&#10;xc_evtchn_notify&#10;xc_evtchn_open&#10;xc_evtchn_pending&#10;xc_evtchn_t&#10;xc_evtchn_unbind&#10;xc_evtchn_unmask&#10;xc_get_hvm_param&#10;xc_hvm_get_mem_access&#10;xc_hvm_inject_trap&#10;xc_hvm_set_mem_access&#10;xc_interface_close&#10;xc_interface_open&#10;xc_map_foreign_batch&#10;xc_map_foreign_range&#10;xc_mem_access_disable&#10;xc_mem_access_enable&#10;xc_mem_access_resume&#10;xc_mem_event_disable&#10;xc_mem_event_enable&#10;xc_memory_op&#10;xc_set_hvm_param&#10;xc_set_mem_access&#10;xc_vcpu_getcontext&#10;xc_vcpu_setcontext</span><br></pre></td></tr></table></figure>
+<p>とりわけVMIにおいて重要なのは<code>xc_map_foreign_range()</code>という関数である．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void *xc_map_foreign_ranges(xc_interface *xch, uint32_t dom,&#10;                            size_t size, int prot, size_t chunksize,&#10;                            privcmd_mmap_entry_t entries[], int nentries);</span><br></pre></td></tr></table></figure>
+<p>Xenの各ドメインにはドメインや仮想CPUの構造体(<code>xen/include/xen/sched.h</code>)のほか，マシンメモリ（物理メモリ）と擬似物理メモリが割り当てられる．ドメインにおけるページングは，このマシンフレーム番号(MFN)と疑似物理フレーム番号(PFN)とを対応付けるP2Mテーブルによって実現されている．つまり，ドメインの仮想アドレスは擬似物理メモリフレーム番号に対応し，その疑似物理フレーム番号はさらにマシンフレーム番号に対応する．なお，Intel EPTが有効な環境においてはP2MはEPTによって代替される(<code>ept-p2m.c</code>)．<br><code>xc_map_foreign_range()</code>はこうした仕組みに基づき，ページテーブルを辿ってDom0のメモリ空間にDomUのマシンフレームを割り当てる．<br>VMIに求められるデータ構造の解釈はXenにおいて，この関数があることから成り立つものである．また，これによるフォールトインジェクションに関してもかつて研究が行われていたようだ．</p>
+<h1 id="libxenstore">libxenstore</h1><p>Xenではxenstore-lsやxenstore-readなどのコマンドからxenstoredというデーモンを経由して各ドメインの情報を読み出すことができる．この仕組みをXenStoreといい，関連してlibxenstoreというライブラリが提供されている．(<code>tools/xenstore/</code>)．libxsと呼ばれることもある．<br>XenStoreは名の通りKVSとしてドメインのUUIDやドメイン名，メモリのコミット状況などを格納している．<br>LibVMIにおいても，xenstordへのアクセスのため用いられている(<code>xen_private.h</code>)．</p>
+<h1 id="libxenlight">libxenlight</h1><p>libxenlightはlibxcとlibxenstoreのラッパとして公式に開発されているライブラリである(<code>tools/libxl/</code>)．<br>LibVMIでは用いられていないものの，Xen Projectの本流ではこちらが推進されているように見受けられる．</p>
+<h1 id="XenAccess">XenAccess</h1><p><a href="https://code.google.com/p/xenaccess/" target="_blank" rel="external">XenAccess</a>はlibxcのラッパであり，LibVMIの前身にあたる．<br>目的としてセマンティックギャップの解決が掲げられており，任意のPIDに対応するEPROCESS構造体を取得することができる．<br>EPROCESS構造体はWindowsの各プロセスに割り当てられる構造体であり，Windowsのプロセスリストはこの構造体のActiveProcessLinksメンバからなる双方向リンクリストによって成り立っている．タスクマネージャが参照するのはこの構造体である．<br>XenAccessはこの構造体を手掛かりにカーネルのベースアドレスを取得する．<br>まず，メモリ空間をPEヘッダの先頭すなわちMZという文字列で検索する．そして，発見したアドレスについてシステムプロセス固有のPsInitialSystemProcessのオフセットを加算し，EPROCESS構造体の先頭メンバである_EPROCESS.Pcb.headerにあたるシグネチャと比較する．一致した場合，発見したアドレスがベースアドレスということになる(<code>windows_memory.c</code>, <code>windows_core.c</code>, <code>windows_process.c</code>)．<br>これによって，プロセスリストと任意のプロセスの情報を取得することができるようになった．</p>
+<h1 id="LibVMI">LibVMI</h1><p>LibVMIはXenAccessの後継であり，かつてvmitoolsとも呼ばれていた．<br>先述したようなカーネル空間の解析機能をLibVMIはフォレンジックツールに委譲した．フォレンジックツールを導入するメリットとして，より詳細な構造体の解析を低い実装コストで実現できるという点が挙げられる．<br>さて，LibVMIは<a href="https://github.com/volatilityfoundation/volatility" target="_blank" rel="external">Volatility</a>と<a href="https://github.com/google/rekall" target="_blank" rel="external">Rekall</a>という二種類のフォレンジックツールに対応している．RekallはGoogleによるVolatilityの拡張であり，かつてはLibVMIのサポート外だったものの，<a href="https://github.com/libvmi/libvmi/commit/a4f065a31b986562dc39c9a10d9dff080792f3f4" target="_blank" rel="external">commit a4f065a31b986562dc39c9a10d9dff080792f3f4</a>にて導入された．<br>では，両者の差異はどこにあるのか．</p>
+<h1 id="Kernel_Debugger_Block">Kernel Debugger Block</h1><p>XenAccessが行っていたようなEPROCESS構造体のスキャンについて考えてみよう．<br>VolatilityとRekallはいずれも，まずリンクリストの先頭であるPsActiveProcessHeadを特定しようとする．<br>x86において，このPsActiveProcessHeadは，KPCR(Kernel Processor Control Region)構造体のKdVersionBlockメンバが示すKDDEBUGGER_DATA32構造体から取得することができる．<br>このKPCR構造体だが，x86ではFSレジスタ，x86_64ではGSレジスタが先頭アドレスを保持しており，Windows XPでは0xFFDFF000というマジックナンバーを用いて検索することができる．<br>では，KdVersionBlockはどうか．なんと，Windows 7の64-bit版からこのメンバは空になってしまっている．ゆえに，x86_64ではKDDEBUGGER_DATA64構造体をKdVersionBlockに頼らず検索する必要が生ずる．<br>ここで，VolatilityはKDDEBUGGER_DATA64構造体のヘッダに存在するKDBGシグネチャをスキャンするのに対し(<code>kdbgscan.py</code>)，Rekallはカーネルのバージョンに対応したプロファイル情報を用いて構造体にアクセスする．</p>
+<h1 id="DRAKVUF">DRAKVUF</h1><p><a href="https://github.com/tklengyel/drakvuf" target="_blank" rel="external">DRAKVUF</a>はTamas K Lengyelによって開発されたサンドボックスであり，論文のオーサーにはXenAccessとLibVMIの開発者であるBryan D. Payneも名を連ねている．<br>LibVMIにRekallのサポートを追加したのがほかでもないTamas K Lengyelその人である．<br>Volatilityは前述の通りメモリからKDBG構造体を検索する．だが，ゲストOSのメモリはマルウェアによって改竄されてしまうおそれがあることに加え，Windows 8の64-bit版ではKDBG構造体が難読化されているという問題点がある．<br>一方で，Rekallのプロファイルはゲストから不可視であり，改竄の影響を受けないため，この問題を解決することができる．<br>DRAKVUFはマルウェア解析を目的としてLibVMIを拡張しており，当然プログラムの実行をトラップする機能を備えている．<br>特筆すべきは，Intel EPTを用いたメモリアクセスの監視である(<code>vmi.c</code>)．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">// Now we can set the EPT permissions&#10;if (!container-&#62;guard) &#123;&#10;    container-&#62;guard = g_malloc0(sizeof(vmi_event_t));&#10;    SETUP_MEM_EVENT(container-&#62;guard, container-&#62;pa, VMI_MEMEVENT_PAGE,&#10;            VMI_MEMACCESS_RW, trap_guard);&#10;    if (VMI_FAILURE == vmi_register_event(vmi, container-&#62;guard)) &#123;&#10;        printf(&#34;*** FAILED TO REGISTER MEMORY GUARD @ PAGE %lu ***\n&#34;,&#10;                pa &#62;&#62; 12);&#10;        free(container-&#62;guard);&#10;        free(container);&#10;        continue;&#10;    &#125;&#10;    container-&#62;guard-&#62;data = g_hash_table_new(g_int64_hash,&#10;            g_int64_equal);&#10;    printf(&#34;\t\tNew memory event trap set on page %lu\n&#34;, pa &#62;&#62; 12);&#10;&#125; else &#123;&#10;    printf(&#34;\t\tMemory event trap already set on page %lu\n&#34;, pa &#62;&#62; 12);&#10;&#125;&#10;&#10;struct memevent *test = g_hash_table_lookup(container-&#62;guard-&#62;data,&#10;        &#38;container-&#62;pa);&#10;if (!test) &#123;&#10;    g_hash_table_insert(container-&#62;guard-&#62;data, &#38;container-&#62;pa,&#10;            container);&#10;&#125; else if (test-&#62;sID == SYMBOLWRAP) &#123;&#10;    printf(&#34;Address is already guarded\n&#34;);&#10;&#125; else &#123;&#10;    printf(&#34;Address is trapped by another feature! ERROR/TODO!\n&#34;);&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>このアイデア自体はKVMをベースとして開発されたCXPInspectorを下敷きにしている．<br>かつては任意のアドレスについてNX bitを設定し，ページフォルトハンドラをブレークポイントとする手法が一般的であった．これがカーネル空間から可視であるのに対し，EPTは不可視であるためよりカーネルルートキットの解析に適している．</p>
+<h1 id="おわりに">おわりに</h1><p>LibVMIの登場と洗練によってもはや，セマンティックギャップは過去の問題になりつつある．XenにおけるVMIにおいて，これを用いない手はないだろう．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>“Where to start with Xen? - Stack Overflow,”<br><a href="http://stackoverflow.com/questions/11575299/where-to-start-with-xen" target="_blank" rel="external">http://stackoverflow.com/questions/11575299/where-to-start-with-xen</a></li>
+<li>Linux Technical Sales, IBM Japan,<br>“Xen ハイパーバイザー準仮想化モードの内部構造入門,”<br><a href="http://www-06.ibm.com/jp/linux/tech/doc/attachments/00393cd9_xen_pv_internal_v1_0.pdf" target="_blank" rel="external">http://www-06.ibm.com/jp/linux/tech/doc/attachments/00393cd9_xen_pv_internal_v1_0.pdf[PDF]</a></li>
+<li>Kenichi Kourai and Shigeru Chiba,<br>“<a href="http://dl.acm.org/citation.cfm?id=1065006&amp;dl=ACM&amp;coll=DL&amp;CFID=595394357&amp;CFTOKEN=42837423" target="_blank" rel="external">HyperSpector: Virtual Distributed Monitoring Environments for Secure Intrusion Detection</a>,”<br>Proceedings of the 1st ACM/USENIX International Conference on Virtual Execution Environments, pp. 197-207, NY, USA, 2005.</li>
+<li>新井 昇鎬, 千葉 滋,<br>“<a href="http://www.csg.ci.i.u-tokyo.ac.jp/paper/tadokoro-master2009.pdf" target="_blank" rel="external">複数OSに対応した仮想マシン間プロセススケジューリング[PDF]</a>,”<br>学士論文, 東京工業大学, 2009.</li>
+<li>安積 武志, 千葉 滋,<br>“<a href="http://www.csg.ci.i.u-tokyo.ac.jp/paper/azumi-master2011.pdf" target="_blank" rel="external">踏み台攻撃だけを抑制できるVMMレベルパケット・フィルタ[PDF]</a>,”<br>修士論文, 東京工業大学, 2011.</li>
+<li>Bryan D. Payne, Martim D. P. de A. Carbone, and Wenke Lee,<br>“<a href="http://www.acsac.org/2007/papers/138.pdf" target="_blank" rel="external">Secure and Flexible Monitoring of Virtual Machines[PDF]</a>“,<br>Proceedings of the 23rd Annual Computer Security Applications Conference, pp. 385-397, Miami Beach, FL, 2007.</li>
+<li>Bryan D. Payne,<br>“<a href="http://prod.sandia.gov/techlib/access-control.cgi/2012/127818.pdf" target="_blank" rel="external">Simplifying Virtual Machine Introspection Using LibVMI[PDF]</a>,”<br>SANDIA REPORT, 2012.</li>
+<li>“Do we need the Kernel Debugging Block? - Rekall Memory Forensic Flamework,”<br><a href="http://www.rekall-forensic.com/posts/2014-02-21-do-we-need-kdbg.html" target="_blank" rel="external">http://www.rekall-forensic.com/posts/2014-02-21-do-we-need-kdbg.html</a></li>
+<li>Amit Vasudevan, Ramesh Yerraballi,<br>“<a href="https://www.acsac.org/2005/papers/72.pdf" target="_blank" rel="external">Stealth Breakpoints[PDF]</a>,”<br>Proceedings of the 21st Annual Computer Security Applications Conference, pp. 381-392, AZ, USA, 2005.</li>
+<li>Carsten Willems, Ralf Hund, and Thorsten Holz,<br>“<a href="https://www.hgi.rub.de/media/emma/veroeffentlichungen/2012/11/26/TR-HGI-2012-002.pdf" target="_blank" rel="external">CXPInspector: Hypervisor-Based, Hardware-Assisted System Monitoring[PDF]</a>,”<br>Technical Report TR-HGI-2012-002, Ruhr-Uni­ver­si­tät Bo­chum, Horst Görtz Institut für IT-Sicherheit(HGI), 2012.</li>
+<li>Tamas K. Lengyel, Steve Maresca, Bryan D. Payne, George D. Webster, Sebastian Vogl, and Aggelos Kiayias,<br>“<a href="https://www.sec.in.tum.de/assets/Uploads/scalability-fidelity-stealth.pdf" target="_blank" rel="external">Scalability, Fidelity and Stealth in the DRAKVUF Dynamic Malware Analysis System[PDF]</a>,”<br>Proceedings of the 30th Annual Computer Security Applications Conference, pp. 386-395, NY, USA, 2014.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/01/31/xen-libvmi/" data-id="ciibzdm0v00059cos84k56f3i" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/forensics/">forensics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-sandbox-transparency" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     
@@ -89,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="cii1a7yov000xswosoas1xhas" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="ciibzdm1g000x9cos28m1ogdi" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -141,7 +202,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="cii1a7ypb0014swos46dd399b" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="ciibzdm1t00149cosab02s5tv" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -195,7 +256,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cii1a7yog000jswosimpsos7h" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="ciibzdm14000j9cos00npgou6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -259,7 +320,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cii1a7yog000oswos5xul6doo" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="ciibzdm19000o9cosy61o1zbc" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -317,7 +378,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cii1a7yog000cswosh34f11lw" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="ciibzdm11000c9cosmmztw67x" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -392,7 +453,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cii1a7yog000rswosavvm73k0" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="ciibzdm1b000r9cosyped29dl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -480,7 +541,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="cii1a7ynk0000swoscygn5z2s" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="ciibzdm0100009cosapoeuenb" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -521,5 +582,35 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
 
 <script src="/js/script.js" type="text/javascript"></script>
   </div>
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 </body>
 </html>

@@ -97,7 +97,7 @@
 <p><img src="/image/autoprobe/request_eval.png"></p>
 <p>　AUTOPROBEはふたつのデータセットに含まれる56ファミリのトレースから105のリクエストを生成した．生成にかかった時間は平均13.2分．リクエストはすべてHTTPであったとのこと．</p>
 <h2 id="レスポンスハンドリング-1">レスポンスハンドリング</h2><p>　生成したリクエストのうち76件がC&amp;Cサーバからのレスポンスを引き出した．さらにAUTOPROBEは<code>HTTP 200</code>レスポンスコードを含む同数のランダムなレスポンスを生成し，検体に与えた．これはレスポンスハンドリングの可否によって検体の異なる挙動を確認したいためだ．結果として76件のテストケース中71件（93％）で検体は異なる挙動を示した—<strong>期待される受信データを得たマルウェアは一般に10以上のシステムコールと50以上のコードブロックを実行する</strong>．残りの5件はC&amp;Cサーバではなかった．つまりAUTOPROBEはマルウェアの通信先がC&amp;Cサーバかどうか正しく判定できている．</p>
-<h2 id="ケーススタディ">ケーススタディ</h2><p>　たとえばBamitalのリクエストはファイル名・<code>GetVersionEx</code>によって得たOS情報・DGA(domain generation algorithm)によって生成したホスト名を含んでいた．AUTOPROBEはこれらの値が依存するシステムコールを得ている：</p>
+<h2 id="ケーススタディ">ケーススタディ</h2><p>　たとえばBamitalのリクエストはファイル名・<code>GetVersionEx</code>によって得たOS情報・DGA (domain generation algorithm) によって生成したホスト名を含んでいた．AUTOPROBEはこれらの値が依存するシステムコールを得ている：</p>
 <p><img src="/image/autoprobe/bamital.png" width="50%" height="50%"></p>
 <p>　C&amp;Cサーバと接続せずとも<code>HTTP/1.1 200 OK</code>を与えればBamitalのハンドラは分析できるとのこと．<br>　また標的型攻撃に用いられるTaidoorのリクエストは<code>GetAdaptersInfo</code>によって得たMACアドレスに依存する値を含んでいた．これによってTaidoorのC&amp;Cサーバは感染端末のみで動作するレスポンスを送信していたようだ．<br>　ドライブバイダウンロード検体であるSalityのC&amp;Cサーバは<code>spm/s_tasks.php</code>, <code>logos_s.gif</code>, <code>231013_d.exe</code>というファイルをレスポンスに含んでいた．AUTOPROBEはこれらのファイルの存在するサーバをSalityのC&amp;Cサーバとみなす．などなど．</p>
 <h2 id="限定的な探索">限定的な探索</h2><p>　Malware Domain Listに含まれる9,500アドレスの近傍/24サブネット・2.6Mアドレスのスキャン結果：</p>
@@ -128,16 +128,16 @@
 </li>
 </ul>
 <h1 id="参考文献">参考文献</h1><ul>
-<li>[1]Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
-<li>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium (NDSS’14), 2014.</li>
-<li>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security (CCS’12), 2012.</li>
-<li>[4]Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
+<li>[1] Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
+<li>[2] Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium (NDSS’14), 2014.</li>
+<li>[3] Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security (CCS’12), 2012.</li>
+<li>[4] Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
 </ul>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="cii1a7ypb001eswos5zgvyhav" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="ciibzdm2k001j9cosjasje9n9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -204,7 +204,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/11/09/is-linear-obfuscation-a-threat/" data-id="cii1a7ypb001aswosw4igeivt" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/11/09/is-linear-obfuscation-a-threat/" data-id="ciibzdm21001a9cos3ii9v3l9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -257,7 +257,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/08/16/automated-malware-analysis-using-decaf-in-seccamp15/" data-id="cii1a7ypb001hswos37rvbs17" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/08/16/automated-malware-analysis-using-decaf-in-seccamp15/" data-id="ciibzdm2p001m9cosnqxj7hc5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -311,7 +311,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cii1a7yog000jswosimpsos7h" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="ciibzdm14000j9cos00npgou6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -375,7 +375,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cii1a7yog000oswos5xul6doo" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="ciibzdm19000o9cosy61o1zbc" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -433,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cii1a7yog000cswosh34f11lw" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="ciibzdm11000c9cosmmztw67x" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -508,7 +508,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cii1a7yog000rswosavvm73k0" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="ciibzdm1b000r9cosyped29dl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -545,5 +545,35 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
 
 <script src="/js/script.js" type="text/javascript"></script>
   </div>
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 </body>
 </html>

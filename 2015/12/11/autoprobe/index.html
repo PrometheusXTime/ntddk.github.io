@@ -24,7 +24,7 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/localized.png">
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/horizontal.png">
 <meta property="og:image" content="http://ntddk.github.io/image/autoprobe/comparison.png">
-<meta property="og:updated_time" content="2015-12-11T06:17:27.829Z">
+<meta property="og:updated_time" content="2015-12-20T01:06:59.932Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="マルウェアの動的解析に基づくC&Cサーバの探索">
 <meta name="twitter:description" content="本稿は情報セキュリティ系論文紹介 Advent Calendar 2015の11日目である．
@@ -112,7 +112,7 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 <p><img src="/image/autoprobe/request_eval.png"></p>
 <p>　AUTOPROBEはふたつのデータセットに含まれる56ファミリのトレースから105のリクエストを生成した．生成にかかった時間は平均13.2分．リクエストはすべてHTTPであったとのこと．</p>
 <h2 id="レスポンスハンドリング-1">レスポンスハンドリング</h2><p>　生成したリクエストのうち76件がC&amp;Cサーバからのレスポンスを引き出した．さらにAUTOPROBEは<code>HTTP 200</code>レスポンスコードを含む同数のランダムなレスポンスを生成し，検体に与えた．これはレスポンスハンドリングの可否によって検体の異なる挙動を確認したいためだ．結果として76件のテストケース中71件（93％）で検体は異なる挙動を示した—<strong>期待される受信データを得たマルウェアは一般に10以上のシステムコールと50以上のコードブロックを実行する</strong>．残りの5件はC&amp;Cサーバではなかった．つまりAUTOPROBEはマルウェアの通信先がC&amp;Cサーバかどうか正しく判定できている．</p>
-<h2 id="ケーススタディ">ケーススタディ</h2><p>　たとえばBamitalのリクエストはファイル名・<code>GetVersionEx</code>によって得たOS情報・DGA(domain generation algorithm)によって生成したホスト名を含んでいた．AUTOPROBEはこれらの値が依存するシステムコールを得ている：</p>
+<h2 id="ケーススタディ">ケーススタディ</h2><p>　たとえばBamitalのリクエストはファイル名・<code>GetVersionEx</code>によって得たOS情報・DGA (domain generation algorithm) によって生成したホスト名を含んでいた．AUTOPROBEはこれらの値が依存するシステムコールを得ている：</p>
 <p><img src="/image/autoprobe/bamital.png" width="50%" height="50%"></p>
 <p>　C&amp;Cサーバと接続せずとも<code>HTTP/1.1 200 OK</code>を与えればBamitalのハンドラは分析できるとのこと．<br>　また標的型攻撃に用いられるTaidoorのリクエストは<code>GetAdaptersInfo</code>によって得たMACアドレスに依存する値を含んでいた．これによってTaidoorのC&amp;Cサーバは感染端末のみで動作するレスポンスを送信していたようだ．<br>　ドライブバイダウンロード検体であるSalityのC&amp;Cサーバは<code>spm/s_tasks.php</code>, <code>logos_s.gif</code>, <code>231013_d.exe</code>というファイルをレスポンスに含んでいた．AUTOPROBEはこれらのファイルの存在するサーバをSalityのC&amp;Cサーバとみなす．などなど．</p>
 <h2 id="限定的な探索">限定的な探索</h2><p>　Malware Domain Listに含まれる9,500アドレスの近傍/24サブネット・2.6Mアドレスのスキャン結果：</p>
@@ -143,16 +143,16 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
 </li>
 </ul>
 <h1 id="参考文献">参考文献</h1><ul>
-<li>[1]Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
-<li>[2]Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium (NDSS’14), 2014.</li>
-<li>[3]Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security (CCS’12), 2012.</li>
-<li>[4]Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
+<li>[1] Zhaoyan Xu, Antonio Nappa, Robert Baykov, Guangliang Yang, Juan Caballero, and Guofei Gu, “<a href="http://www.cs.wm.edu/~ksun/csci780-f14/papers/AutoProbe-CCS14.pdf" target="_blank" rel="external">AUTOPROBE: Towards Automatic Active Malicious Server Probing Using Dynamic Binary Analysis[PDF]</a>,” In Proc. of the 21st ACM Conference on Computer and Communications Security (CCS’14), 2014.</li>
+<li>[2] Antonio Nappa, Zhaoyan Xu, M. Zubair Rafique, Juan Caballero, and Guofei Gu, “<a href="http://faculty.cs.tamu.edu/guofei/paper/CyberProbe_NDSS14.pdf" target="_blank" rel="external">Cyberprobe: Towards Internet-Scale Active Detection of Malicious Servers[PDF]</a>,” In Network and Distributed System Security Symposium (NDSS’14), 2014.</li>
+<li>[3] Zhaoyan Xu, Lingfeng Chen, Guofei Gu, and Christopher Kruegel, “<a href="http://dl.acm.org/citation.cfm?id=2382257" target="_blank" rel="external">Peerpress: Utilizing Enemies’ P2P Strength against Them</a>,” In ACM Conference on Computer and Communications Security (CCS’12), 2012.</li>
+<li>[4] Leonid Ryzhyk, Adam Walker, John Keys, Alexander Legg, Arun Raghunath, Michael Stumm, and Mona Vij, “<a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/ryzhyk" target="_blank" rel="external">User-Guided Device Driver Synthesis</a>,” In Proc. of the 11th USENIX Conference on Operating Systems Design and Implementation (OSDI’14), 2014.</li>
 </ul>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="cii1a7ypb001eswos5zgvyhav" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/12/11/autoprobe/" data-id="ciibzdm2k001j9cosjasje9n9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -162,6 +162,15 @@ TL;DR:　テイント解析（taint analysis）やプログラムスライシン
   
     
 <nav id="article-nav">
+  
+    <a href="/2015/12/19/generating-thesis-titles-with-rnnlm/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          RNNLMによる論文タイトルの自動生成
+        
+      </div>
+    </a>
   
   
     <a href="/2015/11/09/is-linear-obfuscation-a-threat/" id="article-nav-older" class="article-nav-link-wrap">
