@@ -57,6 +57,52 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-before-c-constructor" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2015/02/24/before-c-constructor/">__attribute__((constructor))が呼ばれる前に</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-02-24T13:46:08.000Z" itemprop="datePublished">02-24-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="__attribute__((constructor))"><code>__attribute__((constructor))</code></h1><p><code>main()</code>が呼ばれる前に関数を呼ぶ方法として，一般にgcc拡張である<code>__attribute__((constructor))</code>が利用されている．<br>例えば次のコードでは，<code>main()</code>の前に<code>constructor()</code>が呼び出される．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &#60;stdio.h&#62;&#10;&#10;__attribute__((constructor)) void constructor()&#123;&#10;  printf(&#34;constructor\n&#34;);&#10;&#125;&#10;&#10;int main()&#123;&#10;  printf(&#34;main\n&#34;);&#10;  return 0;&#10;&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="__libc_start_main()"><code>__libc_start_main()</code></h1><p>gccが内部で呼び出すldは，glibcの初期化を行うためにcrt*.oを静的リンクする．これによって，<code>_start()</code>などのシンボルがバイナリに埋め込まれることになる．<br>ここで埋め込まれるシンボルには未定義なものが存在する．その一つとして，crt1.oに含まれる<code>__libc_start_main()</code>が挙げられる．<br>これは<code>main()</code>より先んじて呼び出される関数であり，暗黙的にcrt1.oがリンクの対象となる．しかし未定義であるがゆえに，先にソースコードに<code>__libc_start_main()</code>が宣言されていた場合，ldはこちらをシンボルとして採用してしまう．</p>
+<h1 id="どちらが先か">どちらが先か</h1><p>上記を踏まえて，次のコードではどちらの関数が先に呼び出されるだろうか．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &#60;stdio.h&#62;&#10;&#10;__attribute__((constructor)) void constructor()&#123;&#10;  printf(&#34;constructor\n&#34;);&#10;&#125;&#10;&#10;int __libc_start_main()&#123;&#10;  printf(&#34;__libc_start_main\n&#34;);&#10;  return 0;&#10;&#125;&#10;&#10;int main()&#123;&#10;  printf(&#34;main\n&#34;);&#10;  return 0;&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>正解は<code>__libc_start_main()</code>だ．私は実行するまで分からなかった．</p>
+<h1 id="__do_global_ctors_aux()"><code>__do_global_ctors_aux()</code></h1><p>なぜ<code>__libc_start_main()</code>が<code>__attribute__((constructor))</code>よりも先に呼び出されるのか．それは<code>__attribute__((constructor))</code>が，<code>__do_global_ctors_aux()</code>によって実現されているからだ．<br><code>__do_global_ctors_aux()</code>は<code>_start()</code>, <code>__libc_start_main()</code>, <code>__libc_csu_init()</code>, <code>_init()</code>を通ってようやく呼び出される．そのため，<code>__libc_start_main()</code>の方がより先んじて呼び出されるのだ．</p>
+<h1 id="__libc_csu_init()"><code>__libc_csu_init()</code></h1><p>Sigreturn-oriented Programmingでにわかに脚光を浴びている<code>__libc_csu_init()</code>は<code>__libc_start_main()</code>の引数にセットされるコンストラクタだが，シンボルを上書きして<code>__libc_start_main()</code>の代わりにこちらを<code>main()</code>ないし<code>__attribute__((constructor))</code>の先に呼び出すこともできる．<br>当初私は<code>__attribute__((constructor))</code>はこの辺りから呼び出されるものだと誤解していた．</p>
+<h1 id="Windowsでは">Windowsでは</h1><p>今回は触れないが，<code>.CRT$X??</code>のセクションや<code>Thread Local Storage</code>のコールバックによって同様の機能を実現できる．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>高林哲, 鵜飼文敏, 佐藤祐介, 浜地慎一郎, 首藤 一幸,<br>“Binary Hacks - ハッカー秘伝のテクニック100選,”<br>オライリー・ジャパン, 2006.</li>
+<li>“Linux x86 Program Start Up,”<br><a href="http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html" target="_blank" rel="external">http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/02/24/before-c-constructor/" data-id="cij4pze8v001m8kosxgxmspng" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-xen-libvmi" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     
@@ -106,7 +152,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/01/31/xen-libvmi/" data-id="ciibzdm0v00059cos84k56f3i" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/01/31/xen-libvmi/" data-id="cij4pze7e00058kosokj6gvxz" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/forensics/">forensics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -150,7 +196,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="ciibzdm1g000x9cos28m1ogdi" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="cij4pze82000x8koswbc5l3f6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -202,7 +248,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="ciibzdm1t00149cosab02s5tv" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="cij4pze8f00148kosrahpnyb5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -256,7 +302,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="ciibzdm14000j9cos00npgou6" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cij4pze7m000j8kossa4e3do5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -320,7 +366,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="ciibzdm19000o9cosy61o1zbc" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cij4pze7p000o8kostq7ygsyi" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -378,7 +424,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="ciibzdm11000c9cosmmztw67x" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cij4pze7j000c8kostzqkxg3d" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
@@ -453,7 +499,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="ciibzdm1b000r9cosyped29dl" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cij4pze7v000r8kosksalo2k1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -541,7 +587,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="ciibzdm0100009cosapoeuenb" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="cij4pze6s00008kosctqogbu8" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -565,7 +611,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2015 ntddk<br>
+      &copy; 2016 ntddk<br>
       <a href="https://github.com/steven5538/hexo-theme-athena" target="_blank">Athena</a> by <a href="http://steven5538.tw" target="_blank">Steven5538</a> | Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
