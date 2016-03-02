@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-01-08T10:32:56.291Z</updated>
+  <updated>2016-03-02T07:42:49.180Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -13,6 +13,72 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[ニューロンのモデルよもやま]]></title>
+    <link href="http://ntddk.github.io/2016/03/02/dynamics-of-fitzhugh-nagumo-model/"/>
+    <id>http://ntddk.github.io/2016/03/02/dynamics-of-fitzhugh-nagumo-model/</id>
+    <published>2016-03-02T08:30:00.000Z</published>
+    <updated>2016-03-02T07:42:49.180Z</updated>
+    <content type="html"><![CDATA[<p>　ニューラルネットと脳の違いに関心があって，しばらく勉強していたメモ．</p>
+<h1 id="はじめに">はじめに</h1><p>　ニューロンのモデルといえば，機械学習の本にはMcCulloch-Pittsモデル</p>
+<h1 id="FitzHugh-Nagumo方程式">FitzHugh-Nagumo方程式</h1><h1 id="おわりに">おわりに</h1><p>　</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>　ニューラルネットと脳の違いに関心があって，しばらく勉強していたメモ．</p>
+<h1 id="はじめに">はじめに</h1><p>　ニューロンのモデルといえば，機械学習の本にはMcCulloch-Pittsモデル</p>
+<h1 id="FitzHugh-Nagumo方程]]>
+    </summary>
+    
+      <category term="neural network" scheme="http://ntddk.github.io/tags/neural-network/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[寿司とメモ化再帰]]></title>
+    <link href="http://ntddk.github.io/2016/03/02/sushi-and-memorized-recursion/"/>
+    <id>http://ntddk.github.io/2016/03/02/sushi-and-memorized-recursion/</id>
+    <published>2016-03-02T06:30:00.000Z</published>
+    <updated>2016-03-02T07:24:52.782Z</updated>
+    <content type="html"><![CDATA[<p>　わざわざブログに書くほどでもないことから書いていかないとなまるので書く．</p>
+<h1 id="はじめに">はじめに</h1><p>　寿司 虚空編[1]第2話で登場したアッカーマン関数というかS変換を実装する．</p>
+<h1 id="定義">定義</h1><p>　<span>$x, y$</span><!-- Has MathJax -->を非負整数として，</p>
+<span>$$Ack(x,y)=
+  \begin{cases}
+   y+1 &amp; \text{if}\ x=0, \\
+   Ack(x-1,1) &amp; \text{if}\ x&gt;0, y=0, \\
+   Ack(x-1,Ack(x,y-1)) &amp; \text{otherwise}.
+  \end{cases}$$</span><!-- Has MathJax -->
+<p>　恥ずかしながら「Union-Find木のならし計算量はアッカーマン関数の逆関数となる」といった説明でしか見たことがない．</p>
+<h1 id="実験">実験</h1><p>　何も考えずに<span>$Ack(3, 3)$</span><!-- Has MathJax -->を実装．なお記号は寿司 虚空編に準拠．</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">(x)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> x + <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">b</span><span class="params">(m, n)</span>:</span></span><br><span class="line">  <span class="keyword">if</span> m == <span class="number">0</span> <span class="keyword">and</span> n &gt; <span class="number">0</span>:</span><br><span class="line">    <span class="keyword">return</span> f(n)</span><br><span class="line">  <span class="keyword">elif</span> m &gt; <span class="number">0</span> <span class="keyword">and</span> n == <span class="number">0</span>:</span><br><span class="line">    <span class="keyword">return</span> b(m - <span class="number">1</span>, <span class="number">1</span>) </span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> b(m - <span class="number">1</span>, b(m, n - <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span><span class="params">(x)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> b(x, x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">  <span class="keyword">print</span> g(<span class="number">3</span>) <span class="comment"># Ack(3, 3)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">  main()</span><br></pre></td></tr></table></figure>
+<p>　実行してみる．ついでにプロファイリング．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># python -m cProfile -s time ./sushi.py&#10;61&#10;         3624 function calls (1193 primitive calls) in 0.006 seconds&#10;&#10;   Ordered by: internal time&#10;&#10;   ncalls  tottime  percall  cumtime  percall filename:lineno(function)&#10;   2432/1    0.005    0.000    0.006    0.006 sushi.py:4(b)&#10;     1188    0.001    0.000    0.001    0.000 sushi.py:1(f)&#10;        1    0.000    0.000    0.006    0.006 sushi.py:15(main)&#10;        1    0.000    0.000    0.006    0.006 sushi.py:1(&#60;module&#62;)&#10;        1    0.000    0.000    0.006    0.006 sushi.py:12(g)&#10;        1    0.000    0.000    0.000    0.000 &#123;method &#39;disable&#39; of &#39;_lsprof.Profiler&#39; objects&#125;</span><br></pre></td></tr></table></figure>
+<p>　このプログラムで<span>$Ack(x, y)$</span><!-- Has MathJax -->を計算しようとすると<code>RuntimeError: maximum recursion depth exceeded</code>となって死ぬ．<br>　そこで次の手法を導入する：</p>
+<ul>
+<li>スタック制限の緩和</li>
+<li>再帰深度制限の緩和</li>
+<li>メモ化再帰</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys, threading, thread</span><br><span class="line"></span><br><span class="line">memo = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">(x)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> x + <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">b</span><span class="params">(m, n)</span>:</span></span><br><span class="line">  <span class="keyword">if</span> (m, n) <span class="keyword">not</span> <span class="keyword">in</span> memo:</span><br><span class="line">    memo[(m, n)] = (</span><br><span class="line">      f(n)        <span class="keyword">if</span> m == <span class="number">0</span> <span class="keyword">and</span> n &gt; <span class="number">0</span> <span class="keyword">else</span></span><br><span class="line">      b(m - <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">if</span> m &gt; <span class="number">0</span> <span class="keyword">and</span> n == <span class="number">0</span> <span class="keyword">else</span></span><br><span class="line">      b(m - <span class="number">1</span>, b(m, n - <span class="number">1</span>))</span><br><span class="line">    )</span><br><span class="line">  <span class="keyword">return</span> memo[(m,n)]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">g</span><span class="params">(x)</span>:</span></span><br><span class="line">  <span class="keyword">return</span> b(x, x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">  <span class="keyword">print</span> g(<span class="number">3</span>)   <span class="comment"># 61</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">  sys.setrecursionlimit(<span class="number">1024</span>*<span class="number">1024</span>)</span><br><span class="line">  thread.stack_size(<span class="number">128</span>*<span class="number">1024</span>*<span class="number">1024</span>)</span><br><span class="line">  threading.Thread(target=main).start()</span><br></pre></td></tr></table></figure>
+<p>　やる．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># python -m cProfile -s time ./sushi.py&#10;61&#10;         415 function calls in 0.002 seconds&#10;&#10;   Ordered by: internal time&#10;&#10;   ncalls  tottime  percall  cumtime  percall filename:lineno(function)&#10;        1    0.000    0.000    0.002    0.002 threading.py:1(&#60;module&#62;)&#10;        1    0.000    0.000    0.000    0.000 collections.py:1(&#60;module&#62;)&#10;        1    0.000    0.000    0.002    0.002 sushi.py:1(&#60;module&#62;)&#10;        7    0.000    0.000    0.000    0.000 &#123;method &#39;acquire&#39; of &#39;thread.lock&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 heapq.py:31(&#60;module&#62;)&#10;       91    0.000    0.000    0.000    0.000 &#123;method &#39;append&#39; of &#39;list&#39; objects&#125;&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:379(_parse)&#10;       28    0.000    0.000    0.000    0.000 sre_parse.py:182(__next)&#10;        2    0.000    0.000    0.000    0.000 sre_compile.py:359(_compile_info)&#10;       73    0.000    0.000    0.000    0.000 &#123;len&#125;&#10;        2    0.000    0.000    0.000    0.000 sre_compile.py:32(_compile)&#10;       26    0.000    0.000    0.000    0.000 sre_parse.py:201(get)&#10;       22    0.000    0.000    0.000    0.000 sre_parse.py:138(append)&#10;        1    0.000    0.000    0.000    0.000 &#123;thread.start_new_thread&#125;&#10;        4    0.000    0.000    0.000    0.000 threading.py:259(__init__)&#10;        2    0.000    0.000    0.000    0.000 threading.py:656(__init__)&#10;        2    0.000    0.000    0.001    0.000 re.py:226(_compile)&#10;       21    0.000    0.000    0.000    0.000 &#123;ord&#125;&#10;        2    0.000    0.000    0.001    0.000 sre_compile.py:493(compile)&#10;        1    0.000    0.000    0.001    0.001 warnings.py:45(filterwarnings)&#10;        1    0.000    0.000    0.000    0.000 threading.py:308(wait)&#10;        8    0.000    0.000    0.000    0.000 threading.py:58(__init__)&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:675(parse)&#10;        2    0.000    0.000    0.000    0.000 threading.py:560(__init__)&#10;        1    0.000    0.000    0.000    0.000 threading.py:640(Thread)&#10;        4    0.000    0.000    0.000    0.000 threading.py:241(Condition)&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:140(getwidth)&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:301(_parse_sub)&#10;       12    0.000    0.000    0.000    0.000 &#123;_sre.getlower&#125;&#10;       10    0.000    0.000    0.000    0.000 &#123;isinstance&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:726(start)&#10;        2    0.000    0.000    0.000    0.000 sre_compile.py:478(_code)&#10;        4    0.000    0.000    0.000    0.000 sre_compile.py:472(isstring)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1090(__init__)&#10;        2    0.000    0.000    0.000    0.000 &#123;method &#39;setter&#39; of &#39;property&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 collections.py:26(OrderedDict)&#10;        6    0.000    0.000    0.000    0.000 &#123;thread.allocate_lock&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:602(wait)&#10;        1    0.000    0.000    0.000    0.000 threading.py:124(_RLock)&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:178(__init__)&#10;        1    0.000    0.000    0.000    0.000 threading.py:627(_newname)&#10;        1    0.000    0.000    0.000    0.000 threading.py:575(set)&#10;        4    0.000    0.000    0.000    0.000 &#123;min&#125;&#10;        2    0.000    0.000    0.001    0.000 re.py:188(compile)&#10;        3    0.000    0.000    0.000    0.000 &#123;thread.get_ident&#125;&#10;        1    0.000    0.000    0.000    0.000 keyword.py:11(&#60;module&#62;)&#10;        1    0.000    0.000    0.000    0.000 threading.py:372(notify)&#10;        1    0.000    0.000    0.000    0.000 &#123;thread.stack_size&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:709(_set_daemon)&#10;        2    0.000    0.000    0.000    0.000 threading.py:541(Event)&#10;        2    0.000    0.000    0.000    0.000 threading.py:299(_is_owned)&#10;        2    0.000    0.000    0.000    0.000 &#123;_sre.compile&#125;&#10;        3    0.000    0.000    0.000    0.000 &#123;method &#39;release&#39; of &#39;thread.lock&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:296(_acquire_restore)&#10;        1    0.000    0.000    0.000    0.000 &#123;sys.setrecursionlimit&#125;&#10;        2    0.000    0.000    0.000    0.000 &#123;method &#39;extend&#39; of &#39;list&#39; objects&#125;&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:67(__init__)&#10;        1    0.000    0.000    0.000    0.000 threading.py:399(notifyAll)&#10;        1    0.000    0.000    0.000    0.000 collections.py:387(Counter)&#10;        2    0.000    0.000    0.000    0.000 &#123;method &#39;get&#39; of &#39;dict&#39; objects&#125;&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:90(__init__)&#10;        1    0.000    0.000    0.000    0.000 threading.py:293(_release_save)&#10;        1    0.000    0.000    0.000    0.000 threading.py:551(_Event)&#10;        2    0.000    0.000    0.000    0.000 sre_parse.py:195(match)&#10;        3    0.000    0.000    0.000    0.000 threading.py:63(_note)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1152(currentThread)&#10;        1    0.000    0.000    0.000    0.000 threading.py:254(_Condition)&#10;        2    0.000    0.000    0.000    0.000 &#123;method &#39;items&#39; of &#39;dict&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:789(_set_ident)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1058(_Timer)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1088(_MainThread)&#10;        1    0.000    0.000    0.000    0.000 &#123;method &#39;insert&#39; of &#39;list&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:422(_Semaphore)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1097(_set_daemon)&#10;        1    0.000    0.000    0.000    0.000 threading.py:569(isSet)&#10;        1    0.000    0.000    0.000    0.000 threading.py:56(_Verbose)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1128(_DummyThread)&#10;        1    0.000    0.000    0.000    0.000 threading.py:1008(daemon)&#10;        1    0.000    0.000    0.000    0.000 &#123;issubclass&#125;&#10;        1    0.000    0.000    0.000    0.000 &#123;method &#39;disable&#39; of &#39;_lsprof.Profiler&#39; objects&#125;&#10;        1    0.000    0.000    0.000    0.000 threading.py:514(_BoundedSemaphore)</span><br></pre></td></tr></table></figure>
+<p>　関数呼び出し回数が3624回から415回まで減り，4msec高速化．</p>
+<h1 id="おわりに">おわりに</h1><p>　それでも<span>$Ack(4, 2)$</span><!-- Has MathJax -->でSEGVするのでこのお話はなかったことに．<span>$2^{65536}-3$</span><!-- Has MathJax -->は遠い．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>[1] 寿司 虚空編 -Sushi Kokuu Hen- - pixivコミックで漫画を無料試し読み．<a href="https://comic.pixiv.net/works/1505" target="_blank" rel="external">https://comic.pixiv.net/works/1505</a></li>
+<li>[2] S変換 - 巨大数研究 Wiki - Wikia．<a href="http://ja.googology.wikia.com/wiki/S%E5%A4%89%E6%8F%9B" target="_blank" rel="external">http://ja.googology.wikia.com/wiki/S%E5%A4%89%E6%8F%9B</a></li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>　わざわざブログに書くほどでもないことから書いていかないとなまるので書く．</p>
+<h1 id="はじめに">はじめに</h1><p>　寿司 虚空編[1]第2話で登場したアッカーマン関数というかS変換を実装する．</p>
+<h1 id="定義">定義</h1><p>　<s]]>
+    </summary>
+    
+      <category term="algorithm" scheme="http://ntddk.github.io/tags/algorithm/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[凧揚げ]]></title>
@@ -67,7 +133,7 @@
     <link href="http://ntddk.github.io/2015/12/19/generating-thesis-titles-with-rnnlm/"/>
     <id>http://ntddk.github.io/2015/12/19/generating-thesis-titles-with-rnnlm/</id>
     <published>2015-12-19T14:45:00.000Z</published>
-    <updated>2016-01-03T16:33:16.393Z</updated>
+    <updated>2016-01-27T04:35:24.362Z</updated>
     <content type="html"><![CDATA[<p>　本稿は<a href="http://www.adventar.org/calendars/1053" target="_blank" rel="external">慶應義塾大学SFC村井&amp;徳田研 Advent Calendar 2015</a>の19日目である．</p>
 <h1 id="TL;DR:">TL;DR:</h1><p>　村井研・徳田研の卒論・修論・博論アーカイブから過去の論文タイトルを収集し，RNNLM（Reccurent Neural Network Language Model, 再帰型ニューラルネット言語モデル）[1]を用いて論文タイトルを自動生成する．</p>
 <h1 id="手順">手順</h1><ol>
@@ -109,6 +175,8 @@
     <summary type="html">
     <![CDATA[<p>　本稿は<a href="http://www.adventar.org/calendars/1053" target="_blank" rel="external">慶應義塾大学SFC村井&amp;徳田研 Advent Calendar 2015</a>の19日目である．]]>
     </summary>
+    
+      <category term="neural network" scheme="http://ntddk.github.io/tags/neural-network/"/>
     
       <category term="nlp" scheme="http://ntddk.github.io/tags/nlp/"/>
     
@@ -955,76 +1023,6 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       <category term="dynamic binary translation" scheme="http://ntddk.github.io/tags/dynamic-binary-translation/"/>
     
       <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Return-oriented programming以後]]></title>
-    <link href="http://ntddk.github.io/2014/09/11/after-rop/"/>
-    <id>http://ntddk.github.io/2014/09/11/after-rop/</id>
-    <published>2014-09-11T10:07:12.000Z</published>
-    <updated>2014-09-16T11:54:16.000Z</updated>
-    <content type="html"><![CDATA[<h1 id="はじめに">はじめに</h1><p>Return-oriented programming(ROP)が提唱されて久しい．CTFにおいても，ROPは当たり前のように要求される技術となってきている．一方で，ROPに代わる新たな攻撃手法も模索されている．ここでは，そういったROP以後の攻撃手法を概観する．</p>
-<h1 id="Return-oriented_programming">Return-oriented programming</h1><h2 id="コンセプト">コンセプト</h2><p>まずは簡単にROPをおさらいする．<br>ROPは主にハードウェアDEPという脆弱性対策技術に対抗するために編み出された攻撃手法である．ハードウェアDEPはCPUのNX bitを有効化することで，スタック上でコードを実行する攻撃を無効化する．<br>そこで，ROPはコード領域のretで終わる命令列(gadget)を実行することによってこれを回避する．単体のgadgetではわずかな処理しか行えないが，スタックに次のgadgetのアドレスを積むことで，gadgetを組み合わせたchainを構築することができる．ROPの作成にはコード領域からgadgetを探索する段階とgadgetを組み合わせる段階を要する．レジスタの操作はpopによって行う．</p>
-<h2 id="ASLR/PIEの迂回">ASLR/PIEの迂回</h2><p>ASLRはスタックやヒープなどが読み込まれる位置を実行ごとにランダマイズすることで，アドレスを決め打ちした攻撃を困難にする．だが，ASLRはROPに対処しうる技術ではない．<br>まず，LinuxにおいてASLRはコード領域のランダマイズを行わないため，スタックオーバーフローなどをROPの起点とすることができる．また，bssセグメントに存在する変数のアドレスを取得することができるのは，ASLRの重大な欠陥である．さらに，32bitの場合は総当りによってアドレスを特定できるほか，ulimit -s unlimitedによってASLRを無効化することができる．<br>PIEはASLRに加えてgadgetのアドレスまでランダマイズの対象となるため，攻撃にあたってはleakが前提となる．</p>
-<h2 id="RELROの迂回">RELROの迂回</h2><p>RELROはセクションをread onlyに設定する機能である．Partial RELROとFull RELROがあり，前者の場合はGOTを利用した攻撃が可能である．後者の場合はread onlyにしうる全てのセクションがread onlyとなるが，ROPによって攻撃を成立させることができる．</p>
-<h2 id="Stager">Stager</h2><p>攻撃に使える領域のサイズが制限されている場合，readなどの関数を用いて再度メモリに書き込む方法をstagerと呼ぶ．</p>
-<h2 id="Stack_Pivot">Stack Pivot</h2><p>スタックのサイズ上，リターンアドレスの下にROP chainを構築できないような場合，xchg esp,eaxなどのgadgetを用いてスタックのアドレスを移動させる方法をstack pivotと呼ぶ．</p>
-<h2 id="論文">論文</h2><ul>
-<li><a href="http://cseweb.ucsd.edu/~hovav/dist/geometry.pdf" target="_blank" rel="external">The Geometry of Innocent Flesh on the Bone: Return-into-libc without Function Calls (on the x86) [PDF]</a></li>
-</ul>
-<h1 id="BROP:_Blind_return-oriented_programming">BROP: Blind return-oriented programming</h1><h2 id="コンセプト-1">コンセプト</h2><p>以下の要件を満たすサーバープログラムの場合は，バイナリが手元になくてもROPを試みることができる．</p>
-<ul>
-<li>listen，forkを行う</li>
-<li>スタックオーバーフローで子プロセスが落ちた場合も動き続ける</li>
-<li>GOTにstrcmpなど第三引数を操作できる関数が存在する</li>
-<li>GOTにwriteなどleakさせることができる関数が存在する</li>
-<li>総当りなどでGOTのアドレスが分かる</li>
-</ul>
-<p>目的は，自身をwriteによってダンプさせることである．<br>まず，リターンアドレスを総当りして，無限ループに陥るようなgadget(STOP gadgetと呼称)を探す．次に，関数にinnvalidな引数を渡した場合であっても，GOTに正しく飛んだ場合はSEGVしないという点に着目し，0x08040000周辺に存在しているはずのGOTセクションの位置を推定する．推定にあたっては，+0x6のアドレスや次のGOTエントリに飛んだ場合もSEGVしないという特性を用いる．そして，fdを総当りするか，多数のコネクションからwriteを探り当てる．<br>GOTエントリは要素数のサイズが同じであるため，スタックのleakからゴリ押しできる，といった内容のようだが，実際のところどうなのだろうか．CTFのネタとしては面白いのではないか．</p>
-<h2 id="論文-1">論文</h2><ul>
-<li><a href="http://www.scs.stanford.edu/brop/bittau-brop.pdf" target="_blank" rel="external">Hacking Blind [PDF]</a></li>
-</ul>
-<h2 id="実例">実例</h2><ul>
-<li><a href="http://www.scs.stanford.edu/brop/braille.rb" target="_blank" rel="external">Braille [Ruby]</a></li>
-</ul>
-<h1 id="SROP:_Sigreturn-oriented_Programming">SROP: Sigreturn-oriented Programming</h1><h2 id="コンセプト-2">コンセプト</h2><p>vdsoには，シグナル割り込みから復帰する際に，ユーザーランドのスタック上に作成したsignal frameに保存している値を全てのレジスタへ戻すsigreturnという命令が存在する．つまり，popadが廃止されたx64においても，sigreturnによってスタック上の値を複数のレジスタにセットすることができる．これによって，任意のシステムコールを呼び出すことが可能となるほか，関数の呼び出しがレジスタ渡しの場合においてもROPが容易になる．なお，vsyscallはASLRが有効であっても固定アドレスである．<br>ulimit -s unlimitedを用いてvdsoのマッピングアドレスを固定できる場合はCTFでも活用できそうだ．</p>
-<h2 id="論文-2">論文</h2><ul>
-<li><a href="https://www.cs.vu.nl/~herbertb/papers/srop_sp14.pdf" target="_blank" rel="external">Framing Signals—A Return to Portable Shellcode [PDF]</a></li>
-</ul>
-<h2 id="実例-1">実例</h2><ul>
-<li><a href="http://inaz2.hatenablog.com/entry/2014/07/30/021123" target="_blank" rel="external">x64でSigreturn Oriented ProgrammingによるASLR+DEP+RELRO回避をやってみる - ももいろテクノロジー</a></li>
-</ul>
-<h1 id="JOP:_Jump-oriented_programmingとCOP:_Call-oriented_programming">JOP: Jump-oriented programmingとCOP: Call-oriented programming</h1><h2 id="コンセプト-3">コンセプト</h2><p>通常，retの次にはそのサブルーチンを呼び出したcallの次の命令が存在する．そこで，コールスタックを辿ることでROPによってretが使われていないか検出するROPguardが考案された．ROPguardはMicrosoftの脆弱性対策ツールであるEMET 3.5の根幹を成す理論だった．<br>そこで，retの代わりにjmpを用いるJump-oriented programmingが考案された．また，retやjmpの代わりにcallを用いるCall-oriented programmingも可能である．例えば以下のコードスニペットにおいて，callはjmpと実質的に等価である．</p>
-<pre><code><span class="keyword">pop</span> <span class="literal">esi</span><span class="comment">;</span>
-<span class="keyword">ret</span><span class="comment">;</span>
-<span class="keyword">push</span> <span class="number">eax</span><span class="comment">;</span>
-<span class="keyword">call</span> <span class="literal">esi</span><span class="comment">;</span>
-
-<span class="comment">; call先</span>
-<span class="keyword">pop</span> <span class="literal">esi</span> <span class="comment">;retアドレスを除去</span>
-<span class="comment">;eaxを用いる処理</span>
-</code></pre><p>COPでは，pushのような表現力の高い命令を用いることができる．</p>
-<h2 id="論文-3">論文</h2><h3 id="ROPguard">ROPguard</h3><ul>
-<li><a href="http://ifsec.blogspot.jp/2012/08/my-bluehat-prize-entry-ropguard-runtime.html" target="_blank" rel="external">My BlueHat Prize entry: ROPGuard - runtime prevention of return-oriented programming attacks - Ivan Fratric’s Security Blog</a></li>
-</ul>
-<h3 id="JOP">JOP</h3><ul>
-<li><a href="ftp://ftp.ncsu.edu/pub/tech/2010/TR-2010-8.pdf" target="_blank" rel="external">Jump-Oriented Programming: A New Class of Code-Reuse Attack [PDF]</a></li>
-</ul>
-<h3 id="COP">COP</h3><ul>
-<li><a href="http://www.cs.stevens.edu/~gportoka/files/outofcontrol_oakland14.pdf" target="_blank" rel="external">Out of control: Overcoming control-flow integrity [PDF]</a></li>
-<li><a href="http://www.cs.berkeley.edu/~daw/papers/rop-usenix14.pdf" target="_blank" rel="external">ROP is Still Dangerous: Breaking Modern Defenses [PDF]</a></li>
-</ul>
-<h2 id="実例-2">実例</h2><h3 id="COP-1">COP</h3><ul>
-<li><a href="http://potetisensei.hatenablog.com/entry/2014/09/12/020720" target="_blank" rel="external">Call Oriented Programming - 生きたい</a></li>
-</ul>
-<h1 id="おわりに">おわりに</h1><p>ざっとROP以後の攻撃手法を列挙した．これ以外にも，AlphanumericなROPを作成する技術やバイナリから自動的にROPを作成する技術などが研究されている．また，<a href="http://inaz2.hatenablog.com/entry/2014/08/03/230528" target="_blank" rel="external">roputils</a>や<a href="http://bap.ece.cmu.edu/" target="_blank" rel="external">BAP</a>など，ROPを支援するフレームワークも開発されている．これらについてもいずれ理解したい．</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<h1 id="はじめに">はじめに</h1><p>Return-oriented programming(ROP)が提唱されて久しい．CTFにおいても，ROPは当たり前のように要求される技術となってきている．一方で，ROPに代わる新たな攻撃手法も模索されている．ここでは，そうい]]>
-    </summary>
-    
-      <category term="exploiting" scheme="http://ntddk.github.io/tags/exploiting/"/>
     
   </entry>
   
