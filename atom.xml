@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-03-02T07:24:52.782Z</updated>
+  <updated>2016-03-20T15:26:19.116Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -13,6 +13,77 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[ニューラルネットと脳の違いが知りたくて]]></title>
+    <link href="http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/"/>
+    <id>http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/</id>
+    <published>2016-03-20T15:30:00.000Z</published>
+    <updated>2016-03-20T15:26:19.116Z</updated>
+    <content type="html"><![CDATA[<p>　読書メモ．</p>
+<h1 id="はじめに">はじめに</h1><p>　人間の脳を模したニューラルネットの手法，<ruby>深層学習<rt>ディープラーニング</rt></ruby>がめざましい成果を挙げている—といった謳い文句をよく目にする．だが機械学習の専門書を紐解いても出てくるのはロジスティック回帰のお化けばかり．<br>　われらがPRMLのニューラルネットを扱う章にはこうある．</p>
+<blockquote>
+<p>しかしながら，パターン認識という実際的な応用の観点からは，生物学的な現実性などは全く不要な制約である．<br>　　　　　　　　　　　　　　　　　　　　　　　　— C.M.ビショップ『<a href="http://www.amazon.co.jp/dp/4621061224" target="_blank" rel="external">パターン認識と機械学習 上</a>』 (p.226)</p>
+</blockquote>
+<p>　では，機械学習の文脈で言うところのニューラルネットと脳はどれほど異なっているのだろうか？</p>
+<h1 id="ニューラルネットと脳の違い">ニューラルネットと脳の違い</h1><p>　結論から言えば全然違うわけだが，ざっくり以下の三点から整理できる（と思う）：</p>
+<ul>
+<li>ニューロンのモデル</li>
+<li>ネットワーク構造</li>
+<li>微分計算の手法</li>
+</ul>
+<h2 id="ニューロンのモデル">ニューロンのモデル</h2><p>　現在広く普及している多層パーセプトロンは，単純な差分方程式であるMcCulloch-Pittsモデルをベースに，層を重ねたとき微分できるような活性化関数を組み合わせている．だがそれ以外にも膜電位が変動するメカニズムを考慮した：</p>
+<ul>
+<li>Hodgkin-Huxleyモデル</li>
+<li>FitzHugh-Nagumoモデル</li>
+<li>Izhikevichモデル</li>
+</ul>
+<p>などが提案されている—というようなことは機械学習の道具としてニューラルネットを扱っている本にはあまり書かれていない．ひとまず手元にあった：</p>
+<ul>
+<li>はじパタこと『<a href="http://www.amazon.co.jp/dp/4627849710/" target="_blank" rel="external">はじめてのパターン認識</a>』</li>
+<li>わかパタこと『<a href="http://www.amazon.co.jp/dp/4274131491/" target="_blank" rel="external">わかりやすいパターン認識</a>』</li>
+<li>『<a href="http://www.amazon.co.jp/dp/B016Q22IX2/" target="_blank" rel="external">ITエンジニアのための機械学習理論入門</a>』</li>
+<li>PRMLこと『<a href="http://www.amazon.co.jp/dp/4621061224/" target="_blank" rel="external">パターン認識と機械学習</a>』</li>
+<li>青色の『<a href="http://www.amazon.co.jp/dp/B018K6C99A/" target="_blank" rel="external">深層学習</a>』</li>
+<li>紫色の『<a href="http://www.amazon.co.jp/dp/B01B768QJW/" target="_blank" rel="external">深層学習</a>』</li>
+</ul>
+<p>はモデル名に言及しておらず，McCulloch-Pittsモデルを紹介していたのは：</p>
+<ul>
+<li>『<a href="http://www.amazon.co.jp/dp/4274218023/" target="_blank" rel="external">進化計算と深層学習</a>』</li>
+<li>『<a href="http://www.amazon.co.jp/dp/406153825X" target="_blank" rel="external">イラストで学ぶディープラーニング</a>』</li>
+</ul>
+<p>だけだった．<br>　ちなみにこの中だと機械学習マジで何もわからんって人はまずサンプルコードを動かしながら『<a href="http://www.amazon.co.jp/dp/B016Q22IX2/" target="_blank" rel="external">ITエンジニアのための機械学習理論入門</a>』を読むとよい．深層学習については<a href="http://www.amazon.co.jp/dp/B01B768QJW/" target="_blank" rel="external">紫色の本</a>が好み．<a href="http://www.amazon.co.jp/dp/B018K6C99A/" target="_blank" rel="external">青色の本</a>は数式が追いにくい（どっちもどっちだが）上，深層学習以前と以後でどのような変遷があったのか不明瞭で，『<a href="http://www.amazon.co.jp/dp/4274218023/" target="_blank" rel="external">進化計算と深層学習</a>』は概論のみ．『<a href="http://www.amazon.co.jp/dp/406153825X" target="_blank" rel="external">イラストで学ぶディープラーニング</a>』は読みやすく，汎化性能を向上させる方法も載っていて実践的ではあるが，RNNに触れられていないのが惜しい．<br>　さて，それではニューロンのモデルが複雑であれば脳に近いのかというと，どうやらそういうわけでもないらしい．たとえば複雑かつイオンコンダクタンスの挙動が緻密なHodgkin-Huxleyモデルは，ヤリイカの軸索のニューロンをモデル化したものだが，これはヒトの大脳皮質とはタイプが異なるようだ．<br>　しかし，McCulloch-Pittsモデルには，STDP (Spike Timing Dependent Plasticity, スパイク時刻依存シナプス可塑性) を表現できていないという問題点がある．STDPはニューロンの発火タイミングに応じて重みを更新する規則で，脳はこれにより時系列を学習しているとされる．<br>　こういったことを把握するためにいくつか神経科学の本を読んでみた．だいたいの書籍がまず最初にニューロンのモデルを紹介し，それからニューロンの同期に章を割き，つづいて脳の任意の部位の詳説という体裁をとっている．</p>
+<ul>
+<li>『<a href="http://www.amazon.co.jp/dp/4130643010/" target="_blank" rel="external">脳の計算論</a>』</li>
+<li>『<a href="http://www.amazon.co.jp/dp/4130623044/" target="_blank" rel="external">理工学系からの脳科学入門</a>』</li>
+<li>『<a href="http://www.amazon.co.jp/dp/B006YKU67M/" target="_blank" rel="external">臨時別冊数理科学 SGCライブラリ 60 「計算神経科学への招待」脳の学習機構の理解を目指して 2007年 12月号</a>』</li>
+<li>『<a href="http://www.amazon.co.jp/dp/478281514X/" target="_blank" rel="external">脳の計算理論</a>』</li>
+</ul>
+<p>など．全部読んだ感想としては『<a href="http://www.amazon.co.jp/dp/4130643010/" target="_blank" rel="external">脳の計算論</a>』が最も明快かつ簡潔で，STDPにも詳しく，この記事で触れている範囲のことはほぼカバーしている．<br>　Izhikevichモデルの考案者も『<a href="http://www.izhikevich.org/publications/dsn/index.htm" target="_blank" rel="external">Dynamical Systems in Neuroscience: The Geometry of Excitability and Bursting</a>』という本を書いているのだが，これは難しそう．<br>　本腰を入れて学ぶには「<a href="http://gaya.jp/research/LTP-papers.htm" target="_blank" rel="external">シナプス可塑性の初心者へ　推薦論文リスト</a>」を消化すべきなのだろう．</p>
+<h2 id="ネットワーク構造">ネットワーク構造</h2><p>　パーセプトロンは小脳に，BESOMは大脳皮質に，畳み込みニューラルネットは受容野に，TD学習は大脳基底核に似ていると言われている．ではどこが．<br>　小脳についてはさきほど挙げた『<a href="http://www.amazon.co.jp/dp/478281514X/" target="_blank" rel="external">脳の計算理論</a>』がよい．この<a href="http://www.cns.atr.jp/~kawato/Japanese.html" target="_blank" rel="external">著者</a>は小脳による運動の内部モデル獲得というテーマの大家だそうで，公開されている無料のPDFでその足跡が追える．Hodgkin-Huxleyモデルの解説も丁寧．あわせて“<a href="http://ci.nii.ac.jp/naid/10028190905" target="_blank" rel="external">現代の小脳パーセプトロン仮説</a>”も読みたい．<br>　大脳皮質については<a href="https://staff.aist.go.jp/y-ichisugi/j-index.html" target="_blank" rel="external">BESOMの人</a>の「<a href="https://staff.aist.go.jp/y-ichisugi/rapid-memo/brain-deep-learning.html" target="_blank" rel="external">大脳皮質と deep learning の類似点と相違点</a>」がとにかくわかりやすい．やはり正則化が重要なようだが，それについては「<a href="http://blog.livedoor.jp/brain_network/archives/50968197.html" target="_blank" rel="external">脳とネットワーク/The Swingy Brain:まとめてスパースコーディング - livedoor Blog（ブログ）</a>」に挙げられている論文を読むとよさそう．<br>　さらなる部位との関連については，「<a href="https://staff.aist.go.jp/y-ichisugi/brain-archi/j-index.html" target="_blank" rel="external">全脳アーキテクチャ解明に向けて</a>」から辿れる資料が親切だった．特に「<a href="http://www.slideshare.net/sato0427/wba3rd-satonao" target="_blank" rel="external">海馬神経回路の機能ダイナミクス</a>」で触れられている内容は元論文の古さとは裏腹にあまり書籍では見ない．</p>
+<h2 id="微分計算の手法">微分計算の手法</h2><p>　みんな大好き誤差逆伝播法は脳では使われていない．じゃあどうすればいいかというと：</p>
+<ul>
+<li>『<a href="http://www.amazon.co.jp/dp/0262650541" target="_blank" rel="external">Computational Explorations in Cognitive Neuroscience: Understanding the Mind by Simulating the Brain</a>』<ul>
+<li>5章</li>
+</ul>
+</li>
+<li>“<a href="http://arxiv.org/abs/1412.7525" target="_blank" rel="external">Difference Target Propagation</a>”<ul>
+<li><a href="http://deeplearning.jp/wp-content/uploads/2014/04/20150826_suzuki.pdf" target="_blank" rel="external">日本語の解説</a></li>
+</ul>
+</li>
+<li>“<a href="http://arxiv.org/abs/1502.04156" target="_blank" rel="external">Towards Biologically Plausible Deep Learning</a>”</li>
+</ul>
+<p>がある．後者2つは深層学習の大家であるBengioらの研究で，ここでSTDPが重要となってくるらしい．生物学的な妥当な深層学習まであと何年だろうか．</p>
+<h1 id="おわりに">おわりに</h1><p>　機械学習のことは多少わかるけど（計算論的）神経科学については何から勉強すればいいのかもわからないというところから，騙し騙しとはいえ論文を読める程度になるにはこのあたりを読むとよいのではないかと思います．<br>　なお，このブログに貼られているAmazonリンクはいずれも素のリンクです．ご安心ください．アフィリエイトリンクを貼りまくって小銭を稼ごうと画策しましたが審査に落ちました．</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>　読書メモ．</p>
+<h1 id="はじめに">はじめに</h1><p>　人間の脳を模したニューラルネットの手法，<ruby>深層学習<rt>ディープラーニング</rt></ruby>がめざましい成果を挙げている—といった謳い文句をよく目にする．だが機械学習の専門書を紐解]]>
+    </summary>
+    
+      <category term="neural network" scheme="http://ntddk.github.io/tags/neural-network/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[寿司とメモ化再帰]]></title>
@@ -1003,76 +1074,6 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       <category term="dynamic binary translation" scheme="http://ntddk.github.io/tags/dynamic-binary-translation/"/>
     
       <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Return-oriented programming以後]]></title>
-    <link href="http://ntddk.github.io/2014/09/11/after-rop/"/>
-    <id>http://ntddk.github.io/2014/09/11/after-rop/</id>
-    <published>2014-09-11T10:07:12.000Z</published>
-    <updated>2014-09-16T11:54:16.000Z</updated>
-    <content type="html"><![CDATA[<h1 id="はじめに">はじめに</h1><p>Return-oriented programming(ROP)が提唱されて久しい．CTFにおいても，ROPは当たり前のように要求される技術となってきている．一方で，ROPに代わる新たな攻撃手法も模索されている．ここでは，そういったROP以後の攻撃手法を概観する．</p>
-<h1 id="Return-oriented_programming">Return-oriented programming</h1><h2 id="コンセプト">コンセプト</h2><p>まずは簡単にROPをおさらいする．<br>ROPは主にハードウェアDEPという脆弱性対策技術に対抗するために編み出された攻撃手法である．ハードウェアDEPはCPUのNX bitを有効化することで，スタック上でコードを実行する攻撃を無効化する．<br>そこで，ROPはコード領域のretで終わる命令列(gadget)を実行することによってこれを回避する．単体のgadgetではわずかな処理しか行えないが，スタックに次のgadgetのアドレスを積むことで，gadgetを組み合わせたchainを構築することができる．ROPの作成にはコード領域からgadgetを探索する段階とgadgetを組み合わせる段階を要する．レジスタの操作はpopによって行う．</p>
-<h2 id="ASLR/PIEの迂回">ASLR/PIEの迂回</h2><p>ASLRはスタックやヒープなどが読み込まれる位置を実行ごとにランダマイズすることで，アドレスを決め打ちした攻撃を困難にする．だが，ASLRはROPに対処しうる技術ではない．<br>まず，LinuxにおいてASLRはコード領域のランダマイズを行わないため，スタックオーバーフローなどをROPの起点とすることができる．また，bssセグメントに存在する変数のアドレスを取得することができるのは，ASLRの重大な欠陥である．さらに，32bitの場合は総当りによってアドレスを特定できるほか，ulimit -s unlimitedによってASLRを無効化することができる．<br>PIEはASLRに加えてgadgetのアドレスまでランダマイズの対象となるため，攻撃にあたってはleakが前提となる．</p>
-<h2 id="RELROの迂回">RELROの迂回</h2><p>RELROはセクションをread onlyに設定する機能である．Partial RELROとFull RELROがあり，前者の場合はGOTを利用した攻撃が可能である．後者の場合はread onlyにしうる全てのセクションがread onlyとなるが，ROPによって攻撃を成立させることができる．</p>
-<h2 id="Stager">Stager</h2><p>攻撃に使える領域のサイズが制限されている場合，readなどの関数を用いて再度メモリに書き込む方法をstagerと呼ぶ．</p>
-<h2 id="Stack_Pivot">Stack Pivot</h2><p>スタックのサイズ上，リターンアドレスの下にROP chainを構築できないような場合，xchg esp,eaxなどのgadgetを用いてスタックのアドレスを移動させる方法をstack pivotと呼ぶ．</p>
-<h2 id="論文">論文</h2><ul>
-<li><a href="http://cseweb.ucsd.edu/~hovav/dist/geometry.pdf" target="_blank" rel="external">The Geometry of Innocent Flesh on the Bone: Return-into-libc without Function Calls (on the x86) [PDF]</a></li>
-</ul>
-<h1 id="BROP:_Blind_return-oriented_programming">BROP: Blind return-oriented programming</h1><h2 id="コンセプト-1">コンセプト</h2><p>以下の要件を満たすサーバープログラムの場合は，バイナリが手元になくてもROPを試みることができる．</p>
-<ul>
-<li>listen，forkを行う</li>
-<li>スタックオーバーフローで子プロセスが落ちた場合も動き続ける</li>
-<li>GOTにstrcmpなど第三引数を操作できる関数が存在する</li>
-<li>GOTにwriteなどleakさせることができる関数が存在する</li>
-<li>総当りなどでGOTのアドレスが分かる</li>
-</ul>
-<p>目的は，自身をwriteによってダンプさせることである．<br>まず，リターンアドレスを総当りして，無限ループに陥るようなgadget(STOP gadgetと呼称)を探す．次に，関数にinnvalidな引数を渡した場合であっても，GOTに正しく飛んだ場合はSEGVしないという点に着目し，0x08040000周辺に存在しているはずのGOTセクションの位置を推定する．推定にあたっては，+0x6のアドレスや次のGOTエントリに飛んだ場合もSEGVしないという特性を用いる．そして，fdを総当りするか，多数のコネクションからwriteを探り当てる．<br>GOTエントリは要素数のサイズが同じであるため，スタックのleakからゴリ押しできる，といった内容のようだが，実際のところどうなのだろうか．CTFのネタとしては面白いのではないか．</p>
-<h2 id="論文-1">論文</h2><ul>
-<li><a href="http://www.scs.stanford.edu/brop/bittau-brop.pdf" target="_blank" rel="external">Hacking Blind [PDF]</a></li>
-</ul>
-<h2 id="実例">実例</h2><ul>
-<li><a href="http://www.scs.stanford.edu/brop/braille.rb" target="_blank" rel="external">Braille [Ruby]</a></li>
-</ul>
-<h1 id="SROP:_Sigreturn-oriented_Programming">SROP: Sigreturn-oriented Programming</h1><h2 id="コンセプト-2">コンセプト</h2><p>vdsoには，シグナル割り込みから復帰する際に，ユーザーランドのスタック上に作成したsignal frameに保存している値を全てのレジスタへ戻すsigreturnという命令が存在する．つまり，popadが廃止されたx64においても，sigreturnによってスタック上の値を複数のレジスタにセットすることができる．これによって，任意のシステムコールを呼び出すことが可能となるほか，関数の呼び出しがレジスタ渡しの場合においてもROPが容易になる．なお，vsyscallはASLRが有効であっても固定アドレスである．<br>ulimit -s unlimitedを用いてvdsoのマッピングアドレスを固定できる場合はCTFでも活用できそうだ．</p>
-<h2 id="論文-2">論文</h2><ul>
-<li><a href="https://www.cs.vu.nl/~herbertb/papers/srop_sp14.pdf" target="_blank" rel="external">Framing Signals—A Return to Portable Shellcode [PDF]</a></li>
-</ul>
-<h2 id="実例-1">実例</h2><ul>
-<li><a href="http://inaz2.hatenablog.com/entry/2014/07/30/021123" target="_blank" rel="external">x64でSigreturn Oriented ProgrammingによるASLR+DEP+RELRO回避をやってみる - ももいろテクノロジー</a></li>
-</ul>
-<h1 id="JOP:_Jump-oriented_programmingとCOP:_Call-oriented_programming">JOP: Jump-oriented programmingとCOP: Call-oriented programming</h1><h2 id="コンセプト-3">コンセプト</h2><p>通常，retの次にはそのサブルーチンを呼び出したcallの次の命令が存在する．そこで，コールスタックを辿ることでROPによってretが使われていないか検出するROPguardが考案された．ROPguardはMicrosoftの脆弱性対策ツールであるEMET 3.5の根幹を成す理論だった．<br>そこで，retの代わりにjmpを用いるJump-oriented programmingが考案された．また，retやjmpの代わりにcallを用いるCall-oriented programmingも可能である．例えば以下のコードスニペットにおいて，callはjmpと実質的に等価である．</p>
-<pre><code><span class="keyword">pop</span> <span class="literal">esi</span><span class="comment">;</span>
-<span class="keyword">ret</span><span class="comment">;</span>
-<span class="keyword">push</span> <span class="number">eax</span><span class="comment">;</span>
-<span class="keyword">call</span> <span class="literal">esi</span><span class="comment">;</span>
-
-<span class="comment">; call先</span>
-<span class="keyword">pop</span> <span class="literal">esi</span> <span class="comment">;retアドレスを除去</span>
-<span class="comment">;eaxを用いる処理</span>
-</code></pre><p>COPでは，pushのような表現力の高い命令を用いることができる．</p>
-<h2 id="論文-3">論文</h2><h3 id="ROPguard">ROPguard</h3><ul>
-<li><a href="http://ifsec.blogspot.jp/2012/08/my-bluehat-prize-entry-ropguard-runtime.html" target="_blank" rel="external">My BlueHat Prize entry: ROPGuard - runtime prevention of return-oriented programming attacks - Ivan Fratric’s Security Blog</a></li>
-</ul>
-<h3 id="JOP">JOP</h3><ul>
-<li><a href="ftp://ftp.ncsu.edu/pub/tech/2010/TR-2010-8.pdf" target="_blank" rel="external">Jump-Oriented Programming: A New Class of Code-Reuse Attack [PDF]</a></li>
-</ul>
-<h3 id="COP">COP</h3><ul>
-<li><a href="http://www.cs.stevens.edu/~gportoka/files/outofcontrol_oakland14.pdf" target="_blank" rel="external">Out of control: Overcoming control-flow integrity [PDF]</a></li>
-<li><a href="http://www.cs.berkeley.edu/~daw/papers/rop-usenix14.pdf" target="_blank" rel="external">ROP is Still Dangerous: Breaking Modern Defenses [PDF]</a></li>
-</ul>
-<h2 id="実例-2">実例</h2><h3 id="COP-1">COP</h3><ul>
-<li><a href="http://potetisensei.hatenablog.com/entry/2014/09/12/020720" target="_blank" rel="external">Call Oriented Programming - 生きたい</a></li>
-</ul>
-<h1 id="おわりに">おわりに</h1><p>ざっとROP以後の攻撃手法を列挙した．これ以外にも，AlphanumericなROPを作成する技術やバイナリから自動的にROPを作成する技術などが研究されている．また，<a href="http://inaz2.hatenablog.com/entry/2014/08/03/230528" target="_blank" rel="external">roputils</a>や<a href="http://bap.ece.cmu.edu/" target="_blank" rel="external">BAP</a>など，ROPを支援するフレームワークも開発されている．これらについてもいずれ理解したい．</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<h1 id="はじめに">はじめに</h1><p>Return-oriented programming(ROP)が提唱されて久しい．CTFにおいても，ROPは当たり前のように要求される技術となってきている．一方で，ROPに代わる新たな攻撃手法も模索されている．ここでは，そうい]]>
-    </summary>
-    
-      <category term="exploiting" scheme="http://ntddk.github.io/tags/exploiting/"/>
     
   </entry>
   
