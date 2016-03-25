@@ -57,6 +57,61 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-neural-image-caption-generator-twitter-bot" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2016/03/26/neural-image-caption-generator-twitter-bot/">写真から説明文を自動生成するbotを作った</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2016-03-25T15:30:00.000Z" itemprop="datePublished">03-26-2016</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><center><br><a class="twitter-timeline" href="https://twitter.com/img2cap" data-widget-id="713361832895860739" target="_blank" rel="external">@img2capさんのツイート</a></center></p>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+<h1 id="これはなに">これはなに</h1><p>　<code>@img2cap file</code>という形式で画像を投げつけると説明文をつけ加えて返信するだけのTwitter bot.</p>
+<h1 id="しくみ">しくみ</h1><p>　CNN + LSTM.<br>　以下の論文や実装を参考にした．裏ではChainerが動いている．</p>
+<ul>
+<li>論文<ul>
+<li><a href="http://arxiv.org/abs/1411.4555" target="_blank" rel="external">[1411.4555] Show and Tell: A Neural Image Caption Generator</a></li>
+</ul>
+</li>
+<li>実装<ul>
+<li><a href="https://github.com/apple2373/chainer_caption_generation" target="_blank" rel="external">apple2373/chainer_caption_generation: Caption generation from images using deep neural net</a></li>
+<li><a href="https://github.com/dsanno/chainer-image-caption" target="_blank" rel="external">dsanno/chainer-image-caption</a></li>
+</ul>
+</li>
+<li>データセット<ul>
+<li><a href="http://mscoco.org/dataset/" target="_blank" rel="external">Microsoft COCO</a>を<a href="https://gist.github.com/ksimonyan/3785162f95cd2d5fee77#file-readme-md" target="_blank" rel="external">VGG_ILSVRC_19_layers</a>で<a href="http://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip" target="_blank" rel="external">学習したもの</a></li>
+</ul>
+</li>
+</ul>
+<p>　はじめは論文通りの活性化関数と勾配法を試してみたが，dsanno氏のいうようにSGDよりAdamの方が高速．MomentumSGDと比べてもみたが即Adam最高！　という気分にさせられた．AdamがそもそもAdaGradとRMSPropのいいとこどりらしいので，その両者は試していない．<br>　データセットに含まれているのは<strong>写真</strong>8万枚とその説明文だけ．よってTwitterの各位がいくらイラストを投げつけようと無駄な話で，その手のニーズに対応するには<a href="https://nico-opendata.jp/ja/index.html" target="_blank" rel="external">ニコニコ静画のデータセット</a>あたりを使う必要がありそう．これには画像とそのタグ，コメントを学習したモデルが含まれているそうだが，説明文の生成というタスクに向けてどう転移学習させるか目処は立っていない．<br>　当然ながら学習データと実際に各位が投げつけてくるデータの分布は全く異なるし，困ったものだ．</p>
+<h1 id="謝辞">謝辞</h1><p>　お遊びにGPU環境を貸してくれた<a href="https://twitter.com/georgioush" target="_blank" rel="external">@georgioush</a>, <a href="https://twitter.com/dasoran" target="_blank" rel="external">@dasoran</a>両氏に感謝．</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2016/03/26/neural-image-caption-generator-twitter-bot/" data-id="cim7rhmq5001dekosuzvkewhz" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/neural-network/">neural network</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-book-guide-for-computational-neuroscience" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     
@@ -133,7 +188,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/" data-id="cilntqeln0002coostt48j230" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/" data-id="cim7rhmre001tekosmqdotrx5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/neural-network/">neural network</a></li></ul>
@@ -195,7 +250,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2016/03/02/sushi-and-memorized-recursion/" data-id="cilig8yi8000urwosgu62iuq5" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2016/03/02/sushi-and-memorized-recursion/" data-id="cim7rhmos000uekost62tmq2r" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/algorithm/">algorithm</a></li></ul>
@@ -258,7 +313,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2016/01/08/controlling-rolling-spider-with-leap-motion-cylon-js/" data-id="cilig8yiv001orwosgv7oe5x3" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2016/01/08/controlling-rolling-spider-with-leap-motion-cylon-js/" data-id="cim7rhmr3001oekosb3jqigdi" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/drone/">drone</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vr/">vr</a></li></ul>

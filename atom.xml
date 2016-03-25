@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-03-20T15:26:19.116Z</updated>
+  <updated>2016-03-25T15:25:01.235Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -15,11 +15,48 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[写真から説明文を自動生成するbotを作った]]></title>
+    <link href="http://ntddk.github.io/2016/03/26/neural-image-caption-generator-twitter-bot/"/>
+    <id>http://ntddk.github.io/2016/03/26/neural-image-caption-generator-twitter-bot/</id>
+    <published>2016-03-25T15:30:00.000Z</published>
+    <updated>2016-03-25T15:25:01.235Z</updated>
+    <content type="html"><![CDATA[<p><center><br><a class="twitter-timeline" href="https://twitter.com/img2cap" data-widget-id="713361832895860739" target="_blank" rel="external">@img2capさんのツイート</a></center></p>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+<h1 id="これはなに">これはなに</h1><p>　<code>@img2cap file</code>という形式で画像を投げつけると説明文をつけ加えて返信するだけのTwitter bot.</p>
+<h1 id="しくみ">しくみ</h1><p>　CNN + LSTM.<br>　以下の論文や実装を参考にした．裏ではChainerが動いている．</p>
+<ul>
+<li>論文<ul>
+<li><a href="http://arxiv.org/abs/1411.4555" target="_blank" rel="external">[1411.4555] Show and Tell: A Neural Image Caption Generator</a></li>
+</ul>
+</li>
+<li>実装<ul>
+<li><a href="https://github.com/apple2373/chainer_caption_generation" target="_blank" rel="external">apple2373/chainer_caption_generation: Caption generation from images using deep neural net</a></li>
+<li><a href="https://github.com/dsanno/chainer-image-caption" target="_blank" rel="external">dsanno/chainer-image-caption</a></li>
+</ul>
+</li>
+<li>データセット<ul>
+<li><a href="http://mscoco.org/dataset/" target="_blank" rel="external">Microsoft COCO</a>を<a href="https://gist.github.com/ksimonyan/3785162f95cd2d5fee77#file-readme-md" target="_blank" rel="external">VGG_ILSVRC_19_layers</a>で<a href="http://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip" target="_blank" rel="external">学習したもの</a></li>
+</ul>
+</li>
+</ul>
+<p>　はじめは論文通りの活性化関数と勾配法を試してみたが，dsanno氏のいうようにSGDよりAdamの方が高速．MomentumSGDと比べてもみたが即Adam最高！　という気分にさせられた．AdamがそもそもAdaGradとRMSPropのいいとこどりらしいので，その両者は試していない．<br>　データセットに含まれているのは<strong>写真</strong>8万枚とその説明文だけ．よってTwitterの各位がいくらイラストを投げつけようと無駄な話で，その手のニーズに対応するには<a href="https://nico-opendata.jp/ja/index.html" target="_blank" rel="external">ニコニコ静画のデータセット</a>あたりを使う必要がありそう．これには画像とそのタグ，コメントを学習したモデルが含まれているそうだが，説明文の生成というタスクに向けてどう転移学習させるか目処は立っていない．<br>　当然ながら学習データと実際に各位が投げつけてくるデータの分布は全く異なるし，困ったものだ．</p>
+<h1 id="謝辞">謝辞</h1><p>　お遊びにGPU環境を貸してくれた<a href="https://twitter.com/georgioush" target="_blank" rel="external">@georgioush</a>, <a href="https://twitter.com/dasoran" target="_blank" rel="external">@dasoran</a>両氏に感謝．</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><center><br><a class="twitter-timeline" href="https://twitter.com/img2cap" data-widget-id="713361832895860739" target="_blank" rel="exter]]>
+    </summary>
+    
+      <category term="neural network" scheme="http://ntddk.github.io/tags/neural-network/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[ニューラルネットと脳の違いが知りたくて]]></title>
     <link href="http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/"/>
     <id>http://ntddk.github.io/2016/03/21/book-guide-for-computational-neuroscience/</id>
     <published>2016-03-20T15:30:00.000Z</published>
-    <updated>2016-03-20T15:26:19.116Z</updated>
+    <updated>2016-03-20T15:27:40.775Z</updated>
     <content type="html"><![CDATA[<p>　読書メモ．</p>
 <h1 id="はじめに">はじめに</h1><p>　人間の脳を模したニューラルネットの手法，<ruby>深層学習<rt>ディープラーニング</rt></ruby>がめざましい成果を挙げている—といった謳い文句をよく目にする．だが機械学習の専門書を紐解いても出てくるのはロジスティック回帰のお化けばかり．<br>　われらがPRMLのニューラルネットを扱う章にはこうある．</p>
 <blockquote>
@@ -184,9 +221,9 @@
     <link href="http://ntddk.github.io/2015/12/19/generating-thesis-titles-with-rnnlm/"/>
     <id>http://ntddk.github.io/2015/12/19/generating-thesis-titles-with-rnnlm/</id>
     <published>2015-12-19T14:45:00.000Z</published>
-    <updated>2016-01-27T04:35:24.362Z</updated>
+    <updated>2016-03-25T13:58:43.039Z</updated>
     <content type="html"><![CDATA[<p>　本稿は<a href="http://www.adventar.org/calendars/1053" target="_blank" rel="external">慶應義塾大学SFC村井&amp;徳田研 Advent Calendar 2015</a>の19日目である．</p>
-<h1 id="TL;DR:">TL;DR:</h1><p>　村井研・徳田研の卒論・修論・博論アーカイブから過去の論文タイトルを収集し，RNNLM（Reccurent Neural Network Language Model, 再帰型ニューラルネット言語モデル）[1]を用いて論文タイトルを自動生成する．</p>
+<h1 id="TL;DR:">TL;DR:</h1><p>　村井研・徳田研の卒論・修論・博論アーカイブから過去の論文タイトルを収集し，RNNLM（Recurrent Neural Network Language Model, 再帰型ニューラルネット言語モデル）[1]を用いて論文タイトルを自動生成する．</p>
 <h1 id="手順">手順</h1><ol>
 <li><a href="http://www.sfc.wide.ad.jp/paper.html" target="_blank" rel="external">論文アーカイブ</a>を雑にスクレイピング．</li>
 <li>簡単のため英語タイトルを削る．データサイズは540行・16294字．</li>
@@ -1015,65 +1052,6 @@
       <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
     
       <category term="taint analysis" scheme="http://ntddk.github.io/tags/taint-analysis/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[シンボリック実行に入門しようとした]]></title>
-    <link href="http://ntddk.github.io/2014/09/12/symexec-intro/"/>
-    <id>http://ntddk.github.io/2014/09/12/symexec-intro/</id>
-    <published>2014-09-11T17:50:52.000Z</published>
-    <updated>2015-07-13T02:21:45.000Z</updated>
-    <content type="html"><![CDATA[<h1 id="はじめに">はじめに</h1><p>シンボリック実行(symbolic execution)という用語をセキュリティ系の論文でよく見かけるようになった．ここでは，シンボリック実行の基礎となる理論を辿る．筆者はソフトウェアテストの研究には疎く，おそらく本稿には若干以上の誤謬と誤解が含まれているだろう．ぜひ識者の教示を乞いたい．</p>
-<h1 id="発祥">発祥</h1><p>シンボリック実行は主にソフトウェアテストの領域で古くから研究されてきたトピックである．シンボリック実行という用語の初出は遡ること38年前，James C. Kingらによる<a href="https://courses.engr.illinois.edu/cs477/sp2011/king76symbolicexecution.pdf" target="_blank" rel="external">Symbolic Execution and Program Testing [PDF]</a>という論文だ．Dijkstraがgoto文の濫用による大域脱出を批判したのが1968年であり，Guarded Command Languageを提案したのが1975年のことである．この論文が発表された1976年当時はまさに構造化プログラミングというパラダイムがコンピュータサイエンスの世界を席捲していた時代であった．私が生まれる20年以上前のことで，当時の問題意識を肌身で感じることができないのが少し残念に思える．感覚としては白亜紀のようなもので，主要な登場人物もDijkstraやらKnuthやら，恐竜かよ．<br>さて，シンボリック実行とはどのような提案だったか．まず，シンボリック実行の目的は「どの入力値でどの実行経路を通るか特定する」ことである．そのためにはどうすればよいだろうか？シンボリック実行はその名の通り，プログラムの変数をシンボル(記号)として表現する．論文中のスニペットはあまりにも古めかしいので，<a href="http://en.wikipedia.org/wiki/Symbolic_execution" target="_blank" rel="external">Symbolic execution - Wikipedia, the free encyclopedia</a>を例に考えよう．残念ながら日本語記事はないものの，原理は単純明快．</p>
-<pre><code>y = read<span class="list">()</span>
-y = <span class="number">2</span> * y
-if <span class="list">(<span class="keyword">y</span> == <span class="number">12</span>)</span>
-    fail<span class="list">()</span>
-print<span class="list">(<span class="string">"OK"</span>)</span>
-</code></pre><p>シンボリック実行では入力に具体値を与えない．例えば，変数yに割り当てられる入力値をsというシンボルで表現する．見ての通り，このルーチンはif文で2つの実行経路に分岐するが，この分岐の条件を制約と呼ぶ．ここでの制約は<code>2 * s == 12</code>となる．実行経路を分岐させる条件となる入力値は，式を解けば分かる．言うまでもなく<code>6</code>だ．おっと，これは充足可能性問題というやつじゃないか？その通り，シンボリック実行では制約を解くにあたって制約充足ソルバ(constraint solver)を用いる．ここでは，<code>2 * s == 12</code>という制約が<code>¬s1 ∧ ¬s2 ∧ ¬s3 ∧ ¬s4 ∧ s5 ∧ s6 ∧ ¬s7 ∧ ¬0</code>という連言標準形で表される．<code>2 * s</code>は<code>s1s2s3s4s5s6s70</code>に，<code>12</code>は<code>00001100</code>となる．<br>このように，具体値を与えないまま，必ず1つの実行経路を通る制約(path constraints)を求め，条件分岐に影響する入力値の制約を特定する手法がシンボリック実行である．シンボリック「実行」と銘打っていても，実際にプログラムを実行しているわけではない．飽くまでシンボルの操作を通して，擬似的にプログラムを実行しているのだ．</p>
-<h1 id="Concolic_Testing/Dynamic_Symbolic_Execution">Concolic Testing/Dynamic Symbolic Execution</h1><p>では，シンボリック実行は銀の弾丸たりえるか？そんなわけがない．真っ先に以下の課題に直面してしまう．</p>
-<ul>
-<li>計算爆発</li>
-<li>制約充足ソルバで解くことができない制約</li>
-<li>入力値が一意に定まらない</li>
-</ul>
-<p>そこで，<a href="http://mir.cs.illinois.edu/marinov/publications/SenETAL05CUTE.pdf" target="_blank" rel="external">CUTE: A Concolic Unit Testing Engine for C [PDF]</a>において，concolic testingという手法が提案された．concolicとは耳慣れない言葉だが，どういった意味だろうか？これは，symbolic(シンボル)とconcrete(具体値)からなる造語で，concolic testingとはシンボリック実行に具体値(concrete value)を持ち込んだ手法である．またの名を動的シンボリック実行．<br>具体値を持ち込むとはどういうことか？動的シンボリック実行では，制約充足ソルバが不得手とする非線形な制約に到達した場合，その箇所だけ実際に実行(concrete execution)することで，具体値を代入する．これによって，コードカバレッジを拡大するというのが狙いである．現在「シンボリック実行」と呼ばれているのは概ね動的シンボリック実行である．</p>
-<h1 id="KLEE">KLEE</h1><p><a href="http://klee.github.io/klee/" target="_blank" rel="external">KLEE</a>はシンボリック実行にLLVM bitcodeを導入したプロジェクトである．チュートリアルは<a href="http://feliam.wordpress.com/2010/10/07/the-symbolic-maze/" target="_blank" rel="external">The Symbolic Maze! - Feliam’s Blog</a>が秀逸．<br>使い方は簡単で，解析対象のソースコードに<code>#include &lt;klee/klee.h&gt;</code>と<code>klee_make_symbolic()</code>とを追加するだけで準備は完了する．<code>klee_make_symbolic()</code>にはシンボリック実行を適用したい変数のアドレスとサイズ，名前を引数として与える．</p>
-<pre><code><span class="tag">llvm-gcc</span> <span class="tag">--emit-llvm</span> <span class="tag">-c</span> <span class="tag">-g</span> <span class="attr_selector">[file]</span><span class="class">.c</span>
-<span class="tag">klee</span> <span class="attr_selector">[file]</span><span class="class">.o</span>
-</code></pre><p>LLVM bitcodeとしてコンパイルし，KLEEに与えて実行すると，ktestという形式のテストケースが生成される．</p>
-<pre><code>ktest-tool --<span class="keyword">write</span>-ints klee-<span class="keyword">last</span>/[<span class="keyword">file</span>].ktest 
-</code></pre><p>ktest-toolを実行すると，入力値が出力される．</p>
-<pre><code>ktest <span class="string">file :</span> ‘klee-last/test000001.ktest’
-<span class="string">args :</span> [<span class="string">'[file].o'</span>]
-num <span class="string">objects:</span> <span class="number">1</span>
-object <span class="number">0</span>: <span class="string">name:</span> ‘hoge’
-object <span class="number">0</span>: <span class="string">size:</span> <span class="number">4</span>
-object <span class="number">0</span>: <span class="string">data:</span> ‘fuga′
-</code></pre><p>これによって，KLEEは90%以上のコードカバレッジを実現する．論文の評価実験では，Coreutilsについて，15年に渡って作成されてきたテストスイートよりも高いカバレッジをたったの89時間で達成している．<br>KLEEは多くの研究者に利用されており，シンボリック実行に関する研究のstate-of-the-artはKLEEを分散化した<a href="https://code.comsys.rwth-aachen.de/redmine/projects/kleenet-public" target="_blank" rel="external">KleeNet</a>だと聞いている．<br>しかし，もちろんKLEEは万能ではない．特にループ文の解釈がうまくいかないことが多く，これはシンボリック実行が抱える永年の課題である．</p>
-<h1 id="STP">STP</h1><p>KLEEは<a href="https://sites.google.com/site/stpfastprover/" target="_blank" rel="external">STP Constraint Solver</a>という制約充足ソルバを用いている．STPは制約充足ソルバの中でもSMT(Satisfiable Modulo Theories)ソルバと呼ばれるものに相当する．SAT(SATisfiability problem)ソルバはブール式のみを扱うが，SMTソルバはこれに加えて配列やビットベクトル，加減算大小比較など様々な背景理論を用いることができる．STPではAND，OR，NOT，XORといった演算についてもサポートされ，式の最適化についても工夫されているようだ．</p>
-<h1 id="S2E">S2E</h1><p>少しばかり，リバースエンジニアリングにも目を向けてみよう．解析対象のソースコードが存在しない場合，どうやってシンボリック実行を適用すればよいだろうか？解決策のひとつとして挙げられるのが<a href="https://github.com/dslab-epfl/s2e" target="_blank" rel="external">S2E</a>である．<br>S2EはQEMUの動的バイナリ変換(dynamic binary translation)を用いる．QEMUの動的バイナリ変換機能をTCG(Tiny Code Generator)といい，これによって例えばARM向けにビルドされたバイナリをx86の計算機で動かすといった機能が実現される．<br>まず，QEMUは対象のバイナリを逆アセンブルし，複数のブロックに分割する．このブロックをTB(translation block)といい，定義は<code>translate-all.h</code>に記述されている．TBは分岐命令やページの境界によって区切られる．そして，ブロック単位で逆アセンブルしたコードを<code>gen_intermediate_code()</code>という関数で中間コードに変換し，<code>tcg_gen_code()</code>という関数で他のアーキテクチャの命令とマッピングする．これらは<code>target-[arch]/translate.c</code>および<code>tcg/tgc.c</code>に記述されている．こうして変換されたコードは，TB単位でキャッシュされる．実行にあたっては，変換されたTBをchainとして繋いでいく．この処理は，<code>main()</code>から<code>cpu_exec()</code>を経由して呼ばれる<code>tb_find_fast()</code>や<code>tb_find_slow()</code>に記述されている．こうして，QEMUは異なるアーキテクチャ向けバイナリの実行を可能にしている．<br>S2Eは，QEMUのTCGを用いてPEファイルをLLVM bitcodeに変換し，KLEEに受け渡す．TCGは，中間コードを変換するにあたって，変換先のアーキテクチャの命令が記述された辞書を参照する．S2Eはこの辞書にLLVM bitcodeを登録することで，実行ファイルをLLVM bitcodeに「逆アセンブル」するのだ．<br>このようにして，S2Eはシンボリック実行を実現しているが，そもそもLLVM bitcodeに変換する必要はあるのだろうか？KLEEは確かに優れたツールだが，バイナリに直接シンボリック実行を適用すれば良いのではないか？<br>これには理由がある．QEMUの中間コードも，LLVM bitcodeもレジスタが無限個存在するSSA(Static Single Assignment form，静的単一代入)形式をとっている．一方で，x86アーキテクチャはSSA形式ではない．x86における逆アセンブルコードにシンボリック実行を適用する例を考えよう．</p>
-<pre><code><span class="keyword">mov</span> <span class="literal">esi</span>, <span class="number">0x09</span>
-<span class="keyword">mov</span> <span class="number">edx</span>, <span class="number">0x2014</span>
-</code></pre><p>この場合，制約は<code>(esi == 0x09) and (edx == 0x2014)</code>となる．これなら問題はないが，以下の例はどうだろう．</p>
-<pre><code><span class="keyword">mov</span> <span class="literal">esi</span>, <span class="number">0x09</span>
-...
-<span class="keyword">mov</span> <span class="literal">esi</span>, <span class="number">0x2014</span>
-</code></pre><p>同じレジスタに違う値が代入されている．この場合，制約は<code>(esi == 0x09) and (esi == 0x2014)</code>となってしまう．こうした理由から，シンボリック実行にはSSA形式への変換が必要となるようだ．</p>
-<h1 id="おわりに">おわりに</h1><p>シンボリック実行の基礎を学んだつもりになった．この技術が情報セキュリティの分野でどう活きてくるのかについては，また改めて．進捗だめです．</p>
-<h1 id="参考文献">参考文献</h1><ul>
-<li><a href="http://debugeng.com/concolic%20testing.pdf" target="_blank" rel="external">Concolic testingと背景技術 ~テスト技法の新動向~ [PDF]</a></li>
-<li><a href="http://blog.livedoor.jp/prjmng/archives/52297951.html" target="_blank" rel="external">テスト入力値の自動生成と、concolic testing - ソフトウェアの品質を学びまくる</a></li>
-</ul>
-]]></content>
-    <summary type="html">
-    <![CDATA[<h1 id="はじめに">はじめに</h1><p>シンボリック実行(symbolic execution)という用語をセキュリティ系の論文でよく見かけるようになった．ここでは，シンボリック実行の基礎となる理論を辿る．筆者はソフトウェアテストの研究には疎く，おそらく本稿には若干以]]>
-    </summary>
-    
-      <category term="dynamic binary translation" scheme="http://ntddk.github.io/tags/dynamic-binary-translation/"/>
-    
-      <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
     
   </entry>
   
