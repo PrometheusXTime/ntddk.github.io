@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-03-26T17:50:55.339Z</updated>
+  <updated>2016-03-28T03:07:18.446Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -19,7 +19,7 @@
     <link href="http://ntddk.github.io/2016/03/26/neural-image-caption-generator-twitter-bot/"/>
     <id>http://ntddk.github.io/2016/03/26/neural-image-caption-generator-twitter-bot/</id>
     <published>2016-03-25T15:30:00.000Z</published>
-    <updated>2016-03-26T17:50:55.339Z</updated>
+    <updated>2016-03-28T03:07:18.446Z</updated>
     <content type="html"><![CDATA[<p><center><br><a class="twitter-timeline" href="https://twitter.com/img2cap" data-widget-id="713361832895860739" target="_blank" rel="external">@img2capさんのツイート</a></center></p>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 
@@ -40,7 +40,7 @@
 </ul>
 </li>
 </ul>
-<p>　はじめは論文通りの活性化関数と勾配法を試してみたが，dsanno氏のいうようにSGDよりAdamの方が高速．MomentumSGDと比べてもみたが即Adam最高！　という気分にさせられた．AdamがそもそもAdaGradとRMSPropのいいとこどりらしいので，その両者は試していない．<br>　データセットに含まれているのは<strong>写真</strong>8万枚とその説明文だけ．よってTwitterの各位がいくらイラストを投げつけようと無駄な話で，その手のニーズに対応するには<a href="https://nico-opendata.jp/ja/index.html" target="_blank" rel="external">ニコニコ静画のデータセット</a>あたりを使う必要がありそう．これには画像とそのタグ，コメントを学習したモデルが含まれているそうだが，説明文の生成というタスクに向けてどう転移学習させるか目処は立っていない．<br>　当然ながら学習データと実際に各位が投げつけてくるデータの分布は全く異なるし，困ったものだ．</p>
+<p>　はじめは論文通りの活性化関数と勾配法を試してみたが，dsanno氏のいうようにSGDよりAdamの方が高速．MomentumSGDと比べてもみたが即Adam最高！　という気分にさせられた．AdamがそもそもAdaGradとRMSPropのいいとこどりらしいので，その両者は試していない．なおネットワーク構成は論文のまま．<br>　データセットに含まれているのは<strong>写真</strong>8万枚とその説明文だけ．よってTwitterの各位がいくらイラストを投げつけようと無駄な話で，その手のニーズに対応するには<a href="https://nico-opendata.jp/ja/index.html" target="_blank" rel="external">ニコニコ静画のデータセット</a>あたりを使う必要がありそう．これには画像とそのタグ，コメントを学習したモデルが含まれているそうだが，説明文の生成というタスクに向けてどう転移学習させるか目処は立っていない．<br>　当然ながら学習データと実際に各位が投げつけてくるデータの分布は全く異なるし，困ったものだ．</p>
 <h1 id="謝辞">謝辞</h1><p>　お遊びにGPU環境を貸してくれた<a href="https://twitter.com/georgioush" target="_blank" rel="external">@georgioush</a>, <a href="https://twitter.com/dasoran" target="_blank" rel="external">@dasoran</a>両氏に感謝．</p>
 ]]></content>
     <summary type="html">
