@@ -520,6 +520,7 @@ a.article-title:hover {
   padding: 10px 0;
 }
 .article-entry blockquote {
+  overflow: auto;
   font-family: "Noto Sans Japanese", Arial, sans-serif;
   border: dashed 1px #eee;
   background-color: #f8f8f8;
@@ -758,6 +759,7 @@ a.article-title:hover {
 .article-share-links:after {
   clear: both;
 }
+.article-share-hatena,
 .article-share-twitter,
 .article-share-facebook,
 .article-share-pinterest,
@@ -770,6 +772,7 @@ a.article-title:hover {
   color: #999;
   text-shadow: 0 1px #fff;
 }
+.article-share-hatena:before,
 .article-share-twitter:before,
 .article-share-facebook:before,
 .article-share-pinterest:before,
@@ -785,11 +788,20 @@ a.article-title:hover {
   margin-left: -10px;
   text-align: center;
 }
+.article-share-hatena:hover,
 .article-share-twitter:hover,
 .article-share-facebook:hover,
 .article-share-pinterest:hover,
 .article-share-google:hover {
   color: #fff;
+}
+.article-share-hatena:before {
+  content: "B!";
+  font-weight: bold;
+}
+.article-share-hatena:hover {
+  background: #008fde;
+  text-shadow: 0 1px #0072b2;
 }
 .article-share-twitter:before {
   content: "\f099";
