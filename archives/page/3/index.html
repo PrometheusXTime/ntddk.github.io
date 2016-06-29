@@ -57,6 +57,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vine-howto" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2014/09/28/vine-howto/">Vineを動かす</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2014-09-27T20:56:08.000Z" itemprop="datePublished">09-28-2014</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p>ここでは，<a href="http://bitblaze.cs.berkeley.edu/" target="_blank" rel="external">BitBlaze</a>のうち，静的解析に特化したコンポーネントであるVineを動かしてみる．</p>
+<h1 id="BitBlaze">BitBlaze</h1><p>BitBlazeはDawn Songらによるバイナリ解析プラットフォームで，2008年に<a href="http://bitblaze.cs.berkeley.edu/papers/bitblaze_iciss08.pdf" target="_blank" rel="external">BitBlaze: A New Approach to Computer Security via Binary Analysis [PDF]</a>が発表されて以来，数多くの研究に用いられてきた．BitBlazeは，動的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/temu.html" target="_blank" rel="external">TEMU</a>，静的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/vine.html" target="_blank" rel="external">Vine</a>，動的シンボリック実行コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/rudder.html" target="_blank" rel="external">Rudder</a>から構成される．このうち，TEMUとVineのソースコードが公開されている．</p>
+<h2 id="TEMU:_The_BitBlaze_Dynamic_Analysis_Component">TEMU: The BitBlaze Dynamic Analysis Component</h2><p>TEMUはQEMUをベースとしたエミュレータで，テイント解析(taint analysis)の機能を備えている．テイント解析とは，タグを設定したデータの伝搬を追跡することで，データ同士の依存関係を解析する技術である．TEMUはtracecapというプラグインを用いて，ゲストOS上で動作するアプリケーションのトレースログを取得することができる．</p>
+<h2 id="Vine:_The_BitBlaze_Static_Analysis_Component">Vine: The BitBlaze Static Analysis Component</h2><p>Vineは，逆アセンブリやTEMUのトレースファイルから，中間表現VineILや最弱事前条件，STP formulaなどを出力する．公開されているVineには，TEMU/tracecapのトレースファイルとしてfive.traceが同梱されている．これを例にVineの機能を見てみよう．</p>
+<h1 id="Vineのインストール">Vineのインストール</h1><p><a href="http://bitblaze.cs.berkeley.edu/release/vine-1.0/howto.html" target="_blank" rel="external">Vine installation and user manual</a>の通り．OCamlで記述されているため，関連のパッケージを導入する必要がある．また，32bit環境での動作を前提としている．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install g++ ocaml ocaml-findlib libgdome2-ocaml-dev camlidl \ &#10;                     libextlib-ocaml-dev ocaml-native-compilers \ &#10;                     libocamlgraph-ocaml-dev binutils-dev texlive \ &#10;                     texlive-latex-extra transfig hevea</span><br></pre></td></tr></table></figure>
+<h1 id="trace_reader">trace_reader</h1><p>TEMU/tracecapが出力するトレースファイルはhuman-readableではなく，閲覧はVineのtrace_readerを介して行う必要がある．five.traceでは，T1がタグの識別子となっており，T0はデータに設定されたタグが存在しないことを意味する．なお，ここではキーボードからの入力にタグが設定されている．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../trace_utils/trace_reader -trace five.trace | grep T1 | head -n 20&#10;42075911:&#9;movzbl (%eax),%eax&#9;R@eax[0x40014000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e0c:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e14:&#9;movzbl (%edx),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abc5:&#9;mov    %eax,-0xac(%ebp)&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000000][4]&#9;T0&#10;4205abce:&#9;mov    -0xa8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6a0[0x00000000][4]&#9;T0&#10;4205abd5:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abf5:&#9;mov    -0xac(%ebp),%edx&#9;R@edx[0x40014001][4]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac0b:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac14:&#9;movzbl -0xac(%ebp),%eax&#9;R@eax[0x42130b80][4]&#9;T0&#9;M@0xbffff69c[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac24:&#9;push   %eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x4213030c][4]&#9;T0&#10;4205ac25:&#9;mov    0x8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff750[0x4212d980][4]&#9;T0&#10;4207793a:&#9;mov    0xc(%ebp),%edx&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077945:&#9;cmp    %dl,-0x1(%eax)&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077974:&#9;movzbl %dl,%eax&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;R@eax[0x40014000][4]&#9;T0&#10;42077960:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac39:&#9;movzbl -0x9d(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6ab[0x00000064][1]&#9;T0&#10;4205c550:&#9;mov    $0xa,%edx&#9;I@0x00000000[0x0000000a][4]&#9;T0&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205c566:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd1:&#9;movzbl (%eax),%edi&#9;R@edi[0x00000000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd8:&#9;mov    %edi,-0xac(%ebp)&#9;R@edi[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="VineIL">VineIL</h1><p>Vineが生成するVineILは静的単一代入形式の中間表現であり，CFGの情報が損なわれることはない．中間表現の生成をinstruction liftingという．なお，VineILはValgrindの中間表現を扱うライブラリVEXをもとに生成される．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -ir-out five.ir&#10;~/vine/examples$ cat five.ir | awk &#39;NR==1000,NR==1020&#39;&#10;R_CC_OP_16:reg32_t = 0xd:reg32_t;&#10;T_32t9_1114:reg32_t = cast(T_8t3_1108:reg8_t)U:reg32_t;&#10;R_CC_DEP1_17:reg32_t = T_32t9_1114:reg32_t;&#10;R_CC_DEP2_18:reg32_t = 0:reg32_t;&#10;R_CC_NDEP_19:reg32_t = 0:reg32_t;&#10;/*eflags thunk: logic*/&#10;&#10;R_CF_10:reg1_t = false;&#10;T_7_1115:reg8_t = cast(T_32t9_1114:reg32_t)L:reg8_t;&#10;R_PF_11:reg1_t =&#10;!cast(&#10;      ((T_7_1115:reg8_t &#62;&#62; 7:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 6:reg32_t)&#10;         ^ (T_7_1115:reg8_t &#62;&#62; 5:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 4:reg32_t))&#10;       ^ &#10;         ((T_7_1115:reg8_t &#62;&#62; 3:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 2:reg32_t)&#10;            ^ (T_7_1115:reg8_t &#62;&#62; 1:reg32_t ^ T_7_1115:reg8_t))&#10;         )L:reg1_t;&#10;R_AF_12:reg1_t = false;&#10;R_ZF_13:reg1_t = T_32t9_1114:reg32_t == 0:reg32_t;&#10;R_SF_14:reg1_t = 1:reg32_t == (1:reg32_t &#38; T_32t9_1114:reg32_t &#62;&#62; 7:reg32_t);&#10;R_OF_15:reg1_t = false;</span><br></pre></td></tr></table></figure>
+<p>出力している行の番号は適当．</p>
+<h1 id="最弱事前条件">最弱事前条件</h1><p>最弱事前条件(weakest precondition)はDijkstraによる述語変換意味論の基礎を成す概念である．Sを条件，式をRとした際，最弱事前条件WP(S, R)は，Rを実行する前にS’が成り立っていればSの実行後にSが成り立つ最も弱い条件S’を表す．単純な例だと，以下のように表現される．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WP(S, x=e) = S[e/x]&#10;WP(new == org,  new = new+taint) &#10;=  new+taint == org</span><br></pre></td></tr></table></figure>
+<p>Vineにおける最弱事前条件の出力は，以下のようになる．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -wp-out five.wp&#10;~/vine/examples$ grep let five.wp | head -n 20&#10;let post_1681:reg1_t = true in&#10;let R_EAX_1682:reg32_t = 0x40014000:reg32_t in&#10;let idx_1683:reg32_t = 0x40014000:reg32_t in&#10;let val_1684:reg8_t = INPUT_1001_0000_61:reg8_t in&#10;let temp_1685:reg8_t = val_1684:reg8_t &#38; 0xff:reg8_t in&#10;let temp_1686:reg8_t = temp_1685:reg8_t &#62;&#62; 0:reg8_t in&#10;let towrite_1688:reg8_t = cast(temp_1686:reg8_t)L:reg8_t in&#10;let mem_arr_1687:reg8_t[4294967296] =&#10;    let mem_arr_57[0x40014000:reg32_t]:reg8_t = towrite_1688:reg8_t in&#10;    mem_arr_57:reg8_t[4294967296]&#10;in&#10;let R_EAX_1689:reg32_t = 0x40014000:reg32_t in&#10;let R_GDT_1690:reg32_t = 0xc02dbd80:reg32_t in&#10;let R_LDT_1691:reg32_t = 0xc02dcc58:reg32_t in&#10;let R_DFLAG_1692:reg32_t = 1:reg32_t in&#10;let T_32t0_1693:reg32_t = R_EAX_1689:reg32_t in&#10;let T_8t2_1694:reg8_t = mem_arr_1687[0x40014000:reg32_t]:reg8_t in&#10;let T_32t1_1695:reg32_t = cast(T_8t2_1694:reg8_t)U:reg32_t in&#10;let R_EAX_1696:reg32_t = T_32t1_1695:reg32_t in&#10;let temp_1697:reg32_t = R_EAX_1696:reg32_t &#38; 0xffff00ff:reg32_t in&#10;let temp_1698:reg32_t = cast(0:reg8_t)U:reg32_t in&#10;let temp_1699:reg32_t = temp_1698:reg32_t &#60;&#60; 8:reg8_t in</span><br></pre></td></tr></table></figure>
+<p>このような手法でソースコードの存在しないバイナリから最弱事前条件を抽出し，仕様書を復元する試みがあるらしい．ゾッとする．</p>
+<h1 id="STP_formula">STP formula</h1><p>Vineは，TEMUのトレースファイルからSTP formulaを出力する．STP formulaとはSMTソルバであるSTP用のフォーマットである．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -stp-out five.stp&#10;~/vine/examples$ head -n 20 five.stp&#10;% free variables: &#10;mem_arr_57 : ARRAY BITVECTOR(64) OF BITVECTOR(8);&#10;INPUT_1001_0000_61 : BITVECTOR(8);&#10;% end free variables.&#10; &#10; &#10;ASSERT( 0bin1 =&#10;(LET post_1681 =&#10;    0bin1&#10;IN&#10;(LET R_EAX_1682 =&#10;    0hex40014000&#10;IN&#10;(LET idx_1683 =&#10;    0hex40014000&#10;IN&#10;(LET val_1684 =&#10;    INPUT_1001_0000_61&#10;IN&#10;(LET temp_1685 =</span><br></pre></td></tr></table></figure>
+<p>SMTソルバは充足可能性問題を解く．では，ここで与えられる命題とは何か．それは，任意の初期値がトレースファイルの結果と一致するというものだ．STPは命題が充足可能か解こうとし，充足不能であった場合は反例を出力する．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ cat &#62;&#62;five.stp&#10;QUERY(FALSE);&#10;COUNTEREXAMPLE;</span><br></pre></td></tr></table></figure>
+<p>ここで出力される反例は，実行経路に影響を与えた入力値となるようだ．five.traceでは，0x35(ASCIIで5)という入力値が分岐に影響を与えている．</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../stp/stp five.stp&#10;Invalid.&#10;ASSERT( INPUT_1001_0_61  = 0hex35  );</span><br></pre></td></tr></table></figure>
+<p>これはトレースファイルに対する静的なシンボリック実行だと言える．シンボリック実行とは，記号によって表現したプログラムの変数を操作することで，実行経路に影響する制約を抽出する静的解析の手法である．シンボリック実行は到達定義の解析などモデルベーステストの領域で発展してきたが，マルウェアの挙動解析に役立てられないだろうか．</p>
+<h1 id="BAP">BAP</h1><p><a href="http://bap.ece.cmu.edu" target="_blank" rel="external">BAP</a>はDavid BrumleyらによるVineの再実装である．彼らはCMUに所属しており，PPPのメンバーでもある．彼らは脆弱性解析の自動化をmotivationとしてBitBlazeを扱ってきた．BAPはVineをより発展させたプロジェクトであり，逆アセンブリやTEMUのトレースファイルから中間表現BILを生成するほか，CFGのみならずCDG(control dependence graphs)やDDG(data dependence graphs)の出力をサポートしているようだ．</p>
+<h1 id="おわりに">おわりに</h1><p>TEMUのトレースファイルについて，ざっくりVineによる静的解析を行った．とりあえず動かしてみただけなので，コードを噛み砕く必要がある．気になるのはやはり中間表現のフォーマットだ．一度，QEMU，Valgrind，DynamoRIO，LLVM，Vine，BAPなどの中間表現について，対応を整理したほうが良いかもしれない．</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cipx1f35z000cvoospmxs7rvs" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-symexec-intro" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     
@@ -120,7 +178,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cipa8jbng000rxsoslczzma0w" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/12/symexec-intro/" data-id="cipx1f36b000rvoos3lqq4snl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
@@ -208,7 +266,7 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="cipa8jbm70000xsoskfy3h0yv" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/09/11/after-rop/" data-id="cipx1f34z0000voos2iyckvy5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -249,5 +307,35 @@ object <span class="number">0</span>: <span class="string">data:</span> ‘fuga�
 
 <script src="/js/script.js" type="text/javascript"></script>
   </div>
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-03-28T03:07:18.446Z</updated>
+  <updated>2016-06-29T13:39:37.247Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -13,6 +13,75 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[イスラエルのサイバーセキュリティ事情]]></title>
+    <link href="http://ntddk.github.io/2016/06/29/cyber-security-in-israel/"/>
+    <id>http://ntddk.github.io/2016/06/29/cyber-security-in-israel/</id>
+    <published>2016-06-29T13:30:00.000Z</published>
+    <updated>2016-06-29T13:39:37.247Z</updated>
+    <content type="html"><![CDATA[<p>　これはマルウェアに感染した端末の基板で構成されたトロイの木馬．国際会議<a href="cyberweek.tau.ac.il">Cyber Week</a>の展示の一環．</p>
+<p><img src="/image/israel/cyberhorse.jpg" width="100%" height="100%"></p>
+<h1 id="はじめに">はじめに</h1><p>　先週，イスラエル外務省からの招待でイスラエルのサイバーセキュリティ産業の視察に参加した．<br>　視察の参加者は日本政府・重要インフラ・セキュリティ業界関係に大別される．視察の目的は彼らにイスラエルの起業文化とサイバーセキュリティ技術を伝え，相互理解を図ることにあった．そんな視察になぜ一介のモラトリアム大学生でしかない私が潜り込めたのかというと，イスラエル外務省をハックしたから———というのは嘘．昨年発表した<a href="http://codeblue.jp/" target="_blank" rel="external">CODEBLUE</a>というセキュリティカンファレンスのオーガナイザーにイスラエル大使館から打診があり，若者枠に組み込まれたという経緯である．なんと旅費はイスラエル外務省の負担．<br>　そういうわけで，記憶が錆びつかないうちに，イスラエルのサイバーセキュリティ事情を紹介したい．</p>
+<h1 id="総括">総括</h1><p>　最初にまとめてしまうと，イスラエルのサイバーセキュリティ産業は小国ゆえのフットワークの軽さがあってこそ成り立っている．とりわけ，以下の要素に負うところが大きい：</p>
+<ul>
+<li>徴兵制による人的つながり</li>
+<li>R&amp;Dを重視したスタートアップのエコシステム</li>
+<li>危機感</li>
+</ul>
+<p>したがって，そのまま日本にあてはめて考えることはできないが，柔軟な組織間連携の体制は間違いなく参考になるはずだ．</p>
+<h2 id="徴兵制による人的つながり">徴兵制による人的つながり</h2><p>　イスラエルでは，18歳から男性は36ヶ月，女性は21ヶ月にわたる兵役が義務づけられている．高校を卒業して大学に進学するのではなく，まず国防軍 (IDF) に組み込まれるというわけだ．ツアーガイドの方が「6ヶ月間の基礎訓練が終わってはじめて教官が名前を教えてくれる．それからは下の名前で呼び合う，生涯にわたる仲になる」というエモい話を聞かせてくれたが，この兵役での人的つながりが，イスラエルのサイバーセキュリティ産業に多大な影響を及ぼしている．<strong>分野を越えたコネクションが形成され，小国ゆえに誰がどのように優秀か国が一元的に把握できる</strong>ためである．<br>　とりわけ優秀な人材は<a href="https://en.wikipedia.org/wiki/Talpiot_program" target="_blank" rel="external">タルピオット</a>という3年で数学と物理学の学位および中尉の階級を取得する人材育成プログラムに組み込まれるか，<a href="https://en.wikipedia.org/wiki/Unit_8200" target="_blank" rel="external">8200部隊</a>という諜報部隊———かのStuxnetをNSAと共同で開発したといういわくつきの———に配属され，それらの出身者であることがキャリアパス上の絶大なアピールポイントとなっている．<br>　このように兵役による能力のフィルタリングがあるため，学生は日本のように就職活動をするのではなく，優秀だった順に政府機関や企業から声がかかるという．多くの企業は軍との直接的なつながりを持たないが，重要インフラ事業者や政府のサイバーセキュリティ関連機関，軍需企業は軍と密接に結びついていて，盛んに情報を共有しているという．<br>　軍との関係は兵役が終わったらそれきりというわけではない．たとえば視察時に開催されていたCyber Week併設の全年齢対象CTFでは，空軍が（おそらくリクルートを兼ねて）作成した問題が用いられていた．開始早々に見学した問題の内容としてはMetasploitを用いるペンテストのようなものや，Androidアプリケーションのリバースエンジニアリングなど．</p>
+<h2 id="R&amp;Dを重視したスタートアップのエコシステム">R&amp;Dを重視したスタートアップのエコシステム</h2><p>　さて，イスラエル政府が擁するサイバーセキュリティ関連機関は軍を除くと次のような構造になっている：</p>
+<ul>
+<li>イスラエル首相府<ul>
+<li><a href="http://www.pmo.gov.il/English/PrimeMinistersOffice/DivisionsAndAuthorities/cyber/Pages/default.aspx" target="_blank" rel="external">国家サイバー局 (NCB: National Cyber Bureau)</a><ul>
+<li><a href="http://www.cyberspark.org.il/" target="_blank" rel="external">CyberSpark</a></li>
+<li><a href="https://icrc.tau.ac.il/" target="_blank" rel="external">ICRC (Blavatnik Interdisciplinary Cyber Research Center)</a></li>
+<li>IC3 (Israel Cyber Companies Consortium)</li>
+</ul>
+</li>
+<li>国家サイバーセキュリティ委員会 (NCSA: National Cyber Security Authority)<ul>
+<li><a href="https://il-cert.org.il/" target="_blank" rel="external">IL-CERT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>　国家サイバー局は日本でいうところの<a href="www.nisc.go.jp/">内閣サイバーセキュリティセンター (NISC) </a>的な立ち位置で，サイバーセキュリティ関連の産業育成と防衛について政府に進言する立場を担っている．国家サイバーセキュリティ委員会は各種標準化団体のほかCSIRTとしてIL-CERTを抱える機関である．<strong>IL-CERTではSTIX/TAXIIを用いた情報共有体制が確立されており，検体の挙動をタグベースで共有することで，機微情報を漏らすことなく複数機関にまたがったインシデントに対応できるようになっている</strong>らしい．視察では，ウェブベースの情報共有ツールも紹介された．<br>　国家サイバー局の下部にあるCyberSparkはイスラエル南部の中心都市ベエルシェバにある研究開発特区・機関で，ベンチャーキャピタル，国内のスタートアップ企業のほか，IBMやLockheed Martinといった多国籍企業，隣接するベン・グリオン大学から構成される．ネゲブ砂漠の開発を進めつつ，<strong>競合他社を大学との共同研究という形でまとめ，その研究をスタートアップとして興す</strong>ことを目的としているようだ．ICRCもまたテルアビブ大学を中心とした同様の学際的研究機関で，Cyber Weekのオーガナイザーでもあった．これらは東大京大と産総研やNII, NICTが直接つながっているようなものだと思えばよいが，研究内容を即座にスタートアップ化する点は興味深い．<br>　IC3は国営の軍需企業<a href="http://www.iai.co.il/" target="_blank" rel="external">IAI (Israel Aerospace Industries) </a>を中心としたジョイントベンチャーで，2020年の東京オリンピックに向けた日本市場開拓を虎視眈々とねらっている．<br>　この構造には，政府機関のほか次のようなベンチャーキャピタルとスタートアップ推進企業が噛んでいる：</p>
+<ul>
+<li><a href="https://www.bvp.com/" target="_blank" rel="external">BVP (Bessemer Venture Partners)</a></li>
+<li><a href="www.jvpvc.com/">JVP (Jerusalem Venture Partners)</a></li>
+<li><a href="http://www.team8.vc/" target="_blank" rel="external">Team8</a></li>
+</ul>
+<p>　BVPはアメリカ最古のベンチャーキャピタルだが，イスラエルのサイバーセキュリティ産業に熱視線を投げかけており，後述のTeam8や<a href="http://www.illusivenetworks.com/" target="_blank" rel="external">illusive networks</a>などに投資している．<br>　JVPはイスラエルのベンチャーキャピタルで，CyberSparkを構成する企業のひとつである．Cyber Labsという研究部門も設けており，軍と連携を図りつつ，国内のスタートアップをいくつも育成してきた．興味深かったのは<a href="http://www.cyactive.com/" target="_blank" rel="external">CyActive</a>なる企業の取り組み．遺伝的アルゴリズムを用いて既存のマルウェアを変異させることで，亜種そして未来のマルウェアに対して頑強なヒューリスティックエンジンを開発するといった研究を行っているそうだ．折しも今年のはじめに国際会議NDSSにおいて（PDFファイルに限定してはいるものの）<a href="http://www.internetsociety.org/sites/default/files/11_2-ndss2016-slides.pdf" target="_blank" rel="external">類似の研究</a>が発表されており，今後の動向に注目したい．<br>　Team8はサイバーセキュリティのR&amp;Dをスタートアップ化することを目的としたインキュベーション企業で，illusive networksの母体である．Team8の創設者はかの8200部隊出身者であり，軍で培った問題意識やマネジメント能力が糧となっていると語る．<br>　これらの企業の支援のもと興ったスタートアップは，狭いイスラエル国内でシェアを握るのではなく，海外市場の開拓とCyberSparkに参画しているような多国籍企業へのイグジットを目的としている．<br>　しかしこうした産学軍連携のスタートアップ促進体制は，<strong>イスラエルが小国であり，かつ物騒な隣人に恵まれていて，軍が産業の中核に食い込んでいるという特性</strong>（それは同時に「<strong>だからこそ</strong>イスラエルはサイバーセキュリティ先進国である」というイメージを抱かせることにも寄与している）あってこそだろう．</p>
+<h2 id="危機感">危機感</h2><p>　彼らの口ぶりからすると，やはり周辺諸国との関係がサイバーセキュリティ産業の発展を後押ししているようだ．<br>　たとえば，<a href="https://www.iec.co.il/" target="_blank" rel="external">イスラエル電力公社</a>は国内の電力を一手に担っており，発電所がサイバー攻撃によって停止してしまえばイスラエルの国防は壊滅的な打撃を被る（もちろん周辺諸国からの給電は望めない）．したがって彼らのサイバーセキュリティに対する意識はきわめて高い．彼らのSOCは各施設に派遣されたオペレーターとそこからのアラートを分析する本社施設に分散して設置されており，情報の集約（縮約）と即時共有に力を入れている様子がうかがえた．<br>　また，電力公社の子会社として，電力制御システムに対するサイバー攻撃とその防御の訓練施設<a href="http://www.cybergym.co.il/" target="_blank" rel="external">CyberGym</a>がある．CyberGymは電力公社における訓練のみならず，他社からの依頼に応じてその運用環境を可能な限り再現，かつ攻撃ベクタを強調した環境を用いた5日ほどの演習サービスを提供している．演習場には小型のプラント装置が設置されており，攻撃によってはそこから水が噴き出してくるという．そうした物理的な（！）非常事態への対応力を養うことも，演習の目的であるようだ．<br>　電力公社のほか，IAIは企業のネットワークに対するサイバー攻撃演習サービスを提供している．IAIの演習では，仮想マシン・仮想ネットワーク上の演習環境を用いて，シナリオベースで攻撃への対応を学べるようになっている．<br>　電力公社・IAIとも，ベンダを問わずハードウェア・サーバソフトウェアを柔軟に組み替えられる環境を提供しており，有事———<strong>つねに有事ともいえる</strong>———に備えた訓練に余念がない．</p>
+<h1 id="おわりに">おわりに</h1><p>　ざっくりとではあるが，イスラエルのサイバーセキュリティ事情を紹介してきた．<br>　国防上の要請があるため，どうしても緊張感は漂っているし，そこばかり強調したような文章になってしまったが，いい国だと思う．海は綺麗だし，食事も野菜が多く健康的で美味（帰国したらすぐに口内炎ができてしまった）．なにより，技術者が必要とされ，尊敬される風土である．サイバーセキュリティ関連の事業を興したいのであれば，移住を十分検討していい．とりあえずビザ申請しておくか……．<br>　はじめに断ったとおり，私はインテリジェンス活動や最新の脅威分析に携わっているわけではない，しがない学生なので，提示できる情報の解像度はこの程度である．同行した<a href="https://www.facebook.com/dnobori/posts/997712146972091?pnref=story" target="_blank" rel="external">ソフトイーサ登さんのレポート</a>も参照されたし．<br>　そのほかメモと感想：</p>
+<ul>
+<li>テルアビブ大学の学生のポスターセッション，みんな（セキュリティ分野なのに）機械学習やってて海外でも流行ってるんだなと思った</li>
+<li>何の変哲もない（外には看板など一切なし）アパートの一区画を徴発して国家サイバー局が運営されていて流石にクソ興奮した，まあ見学者向けのダミーかもしれないが</li>
+<li>イスラエル電力公社のSOCではおよそオペレーターの役には立たないだろう攻撃元の国をGoogle Mapにマッピングするシステムが表示されていたが，「可視化はきわめて重要だ．なぜなら，視察にきた海外政府関係者におたくの国からこれほど攻撃されている．ゆえに～とアピールできるからだ」と語っていたのがよかった．nicterやWADJETもそんな感じに使えるのかな</li>
+<li>在イスラエル日本国大使館大使公邸にお邪魔したら入口の扉が3つあってモンティ・ホール問題かよと思った</li>
+<li>飲み屋でチェイサーに水 (water) を頼んだら毎回ウォッカ (vodka) が出てくるので英語力の低さを呪っていたらロシア系移民のふざけた風習だった</li>
+<li>エルサレムもテルアビブも治安としては渋谷とかその辺程度</li>
+<li>人工知能による意思決定の文脈でadversarial examplesの問題を引き合いに出していた人がいて，やはりセキュリティ分野ではルールベースというか決定木に起こせないとトリアージが効かないから難しいなと思った</li>
+<li>死海の名前の由来は「塩分濃度が高すぎて魚が住めないから」だそうだが，湖水の比重が高く多少の風では波立たないため時間が停まっているように見える様子が死を連想させる</li>
+<li>IED兵士はみんなタボールを抱えているのかと思ったらベエルシェバの検問を除いて警察と同様みなCAR-15系にジェリコだった</li>
+<li>イスラエルはLGBTに寛容で多様性を尊重する国であるというイメージ戦略なのだろうか，カーナビの地図上でLGBT区域が緑色に表示されるらしい</li>
+<li>ベン・グリオン国際空港の端末はWindows + IE9でアエロフロート機内の端末はLinuxベース</li>
+<li>トランジットで立ち寄ったシェレメチェボ空港での入出国審査はロシアだし「<a href="http://store.steampowered.com/app/239030/" target="_blank" rel="external">Papers, Please</a>」のような感じだと思っていたらそんなことはなかった</li>
+<li>イスラエル出国審査時にパスポートの顔写真と顔が一致するかスキャンする（？）装置があったが，しっかりaccuracyが出るわけないのでおそらくはハリボテで，裏で人間がチェックしているのだろう</li>
+<li>アラブ諸国に入国できなくなるという噂のパスポートへのスタンプは廃止されていた</li>
+</ul>
+<p>　はい．</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>　これはマルウェアに感染した端末の基板で構成されたトロイの木馬．国際会議<a href="cyberweek.tau.ac.il">Cyber Week</a>の展示の一環．</p>
+<p><img src="/image/israel/cyberhorse.jpg" wi]]>
+    </summary>
+    
+      <category term="intelligence" scheme="http://ntddk.github.io/tags/intelligence/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[写真から説明文を自動生成するbotを作った]]></title>
@@ -1006,50 +1075,6 @@
       <category term="dynamic binary translation" scheme="http://ntddk.github.io/tags/dynamic-binary-translation/"/>
     
       <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Vineを動かす]]></title>
-    <link href="http://ntddk.github.io/2014/09/28/vine-howto/"/>
-    <id>http://ntddk.github.io/2014/09/28/vine-howto/</id>
-    <published>2014-09-27T20:56:08.000Z</published>
-    <updated>2015-07-13T02:22:23.000Z</updated>
-    <content type="html"><![CDATA[<h1 id="はじめに">はじめに</h1><p>ここでは，<a href="http://bitblaze.cs.berkeley.edu/" target="_blank" rel="external">BitBlaze</a>のうち，静的解析に特化したコンポーネントであるVineを動かしてみる．</p>
-<h1 id="BitBlaze">BitBlaze</h1><p>BitBlazeはDawn Songらによるバイナリ解析プラットフォームで，2008年に<a href="http://bitblaze.cs.berkeley.edu/papers/bitblaze_iciss08.pdf" target="_blank" rel="external">BitBlaze: A New Approach to Computer Security via Binary Analysis [PDF]</a>が発表されて以来，数多くの研究に用いられてきた．BitBlazeは，動的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/temu.html" target="_blank" rel="external">TEMU</a>，静的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/vine.html" target="_blank" rel="external">Vine</a>，動的シンボリック実行コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/rudder.html" target="_blank" rel="external">Rudder</a>から構成される．このうち，TEMUとVineのソースコードが公開されている．</p>
-<h2 id="TEMU:_The_BitBlaze_Dynamic_Analysis_Component">TEMU: The BitBlaze Dynamic Analysis Component</h2><p>TEMUはQEMUをベースとしたエミュレータで，テイント解析(taint analysis)の機能を備えている．テイント解析とは，タグを設定したデータの伝搬を追跡することで，データ同士の依存関係を解析する技術である．TEMUはtracecapというプラグインを用いて，ゲストOS上で動作するアプリケーションのトレースログを取得することができる．</p>
-<h2 id="Vine:_The_BitBlaze_Static_Analysis_Component">Vine: The BitBlaze Static Analysis Component</h2><p>Vineは，逆アセンブリやTEMUのトレースファイルから，中間表現VineILや最弱事前条件，STP formulaなどを出力する．公開されているVineには，TEMU/tracecapのトレースファイルとしてfive.traceが同梱されている．これを例にVineの機能を見てみよう．</p>
-<h1 id="Vineのインストール">Vineのインストール</h1><p><a href="http://bitblaze.cs.berkeley.edu/release/vine-1.0/howto.html" target="_blank" rel="external">Vine installation and user manual</a>の通り．OCamlで記述されているため，関連のパッケージを導入する必要がある．また，32bit環境での動作を前提としている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install g++ ocaml ocaml-findlib libgdome2-ocaml-dev camlidl \ &#10;                     libextlib-ocaml-dev ocaml-native-compilers \ &#10;                     libocamlgraph-ocaml-dev binutils-dev texlive \ &#10;                     texlive-latex-extra transfig hevea</span><br></pre></td></tr></table></figure>
-<h1 id="trace_reader">trace_reader</h1><p>TEMU/tracecapが出力するトレースファイルはhuman-readableではなく，閲覧はVineのtrace_readerを介して行う必要がある．five.traceでは，T1がタグの識別子となっており，T0はデータに設定されたタグが存在しないことを意味する．なお，ここではキーボードからの入力にタグが設定されている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../trace_utils/trace_reader -trace five.trace | grep T1 | head -n 20&#10;42075911:&#9;movzbl (%eax),%eax&#9;R@eax[0x40014000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e0c:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e14:&#9;movzbl (%edx),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abc5:&#9;mov    %eax,-0xac(%ebp)&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000000][4]&#9;T0&#10;4205abce:&#9;mov    -0xa8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6a0[0x00000000][4]&#9;T0&#10;4205abd5:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abf5:&#9;mov    -0xac(%ebp),%edx&#9;R@edx[0x40014001][4]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac0b:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac14:&#9;movzbl -0xac(%ebp),%eax&#9;R@eax[0x42130b80][4]&#9;T0&#9;M@0xbffff69c[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac24:&#9;push   %eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x4213030c][4]&#9;T0&#10;4205ac25:&#9;mov    0x8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff750[0x4212d980][4]&#9;T0&#10;4207793a:&#9;mov    0xc(%ebp),%edx&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077945:&#9;cmp    %dl,-0x1(%eax)&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077974:&#9;movzbl %dl,%eax&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;R@eax[0x40014000][4]&#9;T0&#10;42077960:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac39:&#9;movzbl -0x9d(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6ab[0x00000064][1]&#9;T0&#10;4205c550:&#9;mov    $0xa,%edx&#9;I@0x00000000[0x0000000a][4]&#9;T0&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205c566:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd1:&#9;movzbl (%eax),%edi&#9;R@edi[0x00000000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd8:&#9;mov    %edi,-0xac(%ebp)&#9;R@edi[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="VineIL">VineIL</h1><p>Vineが生成するVineILは静的単一代入形式の中間表現であり，CFGの情報が損なわれることはない．中間表現の生成をinstruction liftingという．なお，VineILはValgrindの中間表現を扱うライブラリVEXをもとに生成される．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -ir-out five.ir&#10;~/vine/examples$ cat five.ir | awk &#39;NR==1000,NR==1020&#39;&#10;R_CC_OP_16:reg32_t = 0xd:reg32_t;&#10;T_32t9_1114:reg32_t = cast(T_8t3_1108:reg8_t)U:reg32_t;&#10;R_CC_DEP1_17:reg32_t = T_32t9_1114:reg32_t;&#10;R_CC_DEP2_18:reg32_t = 0:reg32_t;&#10;R_CC_NDEP_19:reg32_t = 0:reg32_t;&#10;/*eflags thunk: logic*/&#10;&#10;R_CF_10:reg1_t = false;&#10;T_7_1115:reg8_t = cast(T_32t9_1114:reg32_t)L:reg8_t;&#10;R_PF_11:reg1_t =&#10;!cast(&#10;      ((T_7_1115:reg8_t &#62;&#62; 7:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 6:reg32_t)&#10;         ^ (T_7_1115:reg8_t &#62;&#62; 5:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 4:reg32_t))&#10;       ^ &#10;         ((T_7_1115:reg8_t &#62;&#62; 3:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 2:reg32_t)&#10;            ^ (T_7_1115:reg8_t &#62;&#62; 1:reg32_t ^ T_7_1115:reg8_t))&#10;         )L:reg1_t;&#10;R_AF_12:reg1_t = false;&#10;R_ZF_13:reg1_t = T_32t9_1114:reg32_t == 0:reg32_t;&#10;R_SF_14:reg1_t = 1:reg32_t == (1:reg32_t &#38; T_32t9_1114:reg32_t &#62;&#62; 7:reg32_t);&#10;R_OF_15:reg1_t = false;</span><br></pre></td></tr></table></figure>
-<p>出力している行の番号は適当．</p>
-<h1 id="最弱事前条件">最弱事前条件</h1><p>最弱事前条件(weakest precondition)はDijkstraによる述語変換意味論の基礎を成す概念である．Sを条件，式をRとした際，最弱事前条件WP(S, R)は，Rを実行する前にS’が成り立っていればSの実行後にSが成り立つ最も弱い条件S’を表す．単純な例だと，以下のように表現される．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WP(S, x=e) = S[e/x]&#10;WP(new == org,  new = new+taint) &#10;=  new+taint == org</span><br></pre></td></tr></table></figure>
-<p>Vineにおける最弱事前条件の出力は，以下のようになる．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -wp-out five.wp&#10;~/vine/examples$ grep let five.wp | head -n 20&#10;let post_1681:reg1_t = true in&#10;let R_EAX_1682:reg32_t = 0x40014000:reg32_t in&#10;let idx_1683:reg32_t = 0x40014000:reg32_t in&#10;let val_1684:reg8_t = INPUT_1001_0000_61:reg8_t in&#10;let temp_1685:reg8_t = val_1684:reg8_t &#38; 0xff:reg8_t in&#10;let temp_1686:reg8_t = temp_1685:reg8_t &#62;&#62; 0:reg8_t in&#10;let towrite_1688:reg8_t = cast(temp_1686:reg8_t)L:reg8_t in&#10;let mem_arr_1687:reg8_t[4294967296] =&#10;    let mem_arr_57[0x40014000:reg32_t]:reg8_t = towrite_1688:reg8_t in&#10;    mem_arr_57:reg8_t[4294967296]&#10;in&#10;let R_EAX_1689:reg32_t = 0x40014000:reg32_t in&#10;let R_GDT_1690:reg32_t = 0xc02dbd80:reg32_t in&#10;let R_LDT_1691:reg32_t = 0xc02dcc58:reg32_t in&#10;let R_DFLAG_1692:reg32_t = 1:reg32_t in&#10;let T_32t0_1693:reg32_t = R_EAX_1689:reg32_t in&#10;let T_8t2_1694:reg8_t = mem_arr_1687[0x40014000:reg32_t]:reg8_t in&#10;let T_32t1_1695:reg32_t = cast(T_8t2_1694:reg8_t)U:reg32_t in&#10;let R_EAX_1696:reg32_t = T_32t1_1695:reg32_t in&#10;let temp_1697:reg32_t = R_EAX_1696:reg32_t &#38; 0xffff00ff:reg32_t in&#10;let temp_1698:reg32_t = cast(0:reg8_t)U:reg32_t in&#10;let temp_1699:reg32_t = temp_1698:reg32_t &#60;&#60; 8:reg8_t in</span><br></pre></td></tr></table></figure>
-<p>このような手法でソースコードの存在しないバイナリから最弱事前条件を抽出し，仕様書を復元する試みがあるらしい．ゾッとする．</p>
-<h1 id="STP_formula">STP formula</h1><p>Vineは，TEMUのトレースファイルからSTP formulaを出力する．STP formulaとはSMTソルバであるSTP用のフォーマットである．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -stp-out five.stp&#10;~/vine/examples$ head -n 20 five.stp&#10;% free variables: &#10;mem_arr_57 : ARRAY BITVECTOR(64) OF BITVECTOR(8);&#10;INPUT_1001_0000_61 : BITVECTOR(8);&#10;% end free variables.&#10; &#10; &#10;ASSERT( 0bin1 =&#10;(LET post_1681 =&#10;    0bin1&#10;IN&#10;(LET R_EAX_1682 =&#10;    0hex40014000&#10;IN&#10;(LET idx_1683 =&#10;    0hex40014000&#10;IN&#10;(LET val_1684 =&#10;    INPUT_1001_0000_61&#10;IN&#10;(LET temp_1685 =</span><br></pre></td></tr></table></figure>
-<p>SMTソルバは充足可能性問題を解く．では，ここで与えられる命題とは何か．それは，任意の初期値がトレースファイルの結果と一致するというものだ．STPは命題が充足可能か解こうとし，充足不能であった場合は反例を出力する．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ cat &#62;&#62;five.stp&#10;QUERY(FALSE);&#10;COUNTEREXAMPLE;</span><br></pre></td></tr></table></figure>
-<p>ここで出力される反例は，実行経路に影響を与えた入力値となるようだ．five.traceでは，0x35(ASCIIで5)という入力値が分岐に影響を与えている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../stp/stp five.stp&#10;Invalid.&#10;ASSERT( INPUT_1001_0_61  = 0hex35  );</span><br></pre></td></tr></table></figure>
-<p>これはトレースファイルに対する静的なシンボリック実行だと言える．シンボリック実行とは，記号によって表現したプログラムの変数を操作することで，実行経路に影響する制約を抽出する静的解析の手法である．シンボリック実行は到達定義の解析などモデルベーステストの領域で発展してきたが，マルウェアの挙動解析に役立てられないだろうか．</p>
-<h1 id="BAP">BAP</h1><p><a href="http://bap.ece.cmu.edu" target="_blank" rel="external">BAP</a>はDavid BrumleyらによるVineの再実装である．彼らはCMUに所属しており，PPPのメンバーでもある．彼らは脆弱性解析の自動化をmotivationとしてBitBlazeを扱ってきた．BAPはVineをより発展させたプロジェクトであり，逆アセンブリやTEMUのトレースファイルから中間表現BILを生成するほか，CFGのみならずCDG(control dependence graphs)やDDG(data dependence graphs)の出力をサポートしているようだ．</p>
-<h1 id="おわりに">おわりに</h1><p>TEMUのトレースファイルについて，ざっくりVineによる静的解析を行った．とりあえず動かしてみただけなので，コードを噛み砕く必要がある．気になるのはやはり中間表現のフォーマットだ．一度，QEMU，Valgrind，DynamoRIO，LLVM，Vine，BAPなどの中間表現について，対応を整理したほうが良いかもしれない．</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<h1 id="はじめに">はじめに</h1><p>ここでは，<a href="http://bitblaze.cs.berkeley.edu/" target="_blank" rel="external">BitBlaze</a>のうち，静的解析に特化したコンポーネントである]]>
-    </summary>
-    
-      <category term="dynamic binary translation" scheme="http://ntddk.github.io/tags/dynamic-binary-translation/"/>
-    
-      <category term="symbolic execution" scheme="http://ntddk.github.io/tags/symbolic-execution/"/>
-    
-      <category term="taint analysis" scheme="http://ntddk.github.io/tags/taint-analysis/"/>
     
   </entry>
   

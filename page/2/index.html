@@ -57,6 +57,66 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-qemu-dbt-bottleneck" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    
+      <header class="article-header">
+        
+  
+    <a class="article-title" href="/2015/07/13/qemu-dbt-bottleneck/">QEMUの動的バイナリ変換におけるボトルネック</a>
+  
+
+      </header>
+    
+    <time class="article-date" datetime="2015-07-13T06:00:00.000Z" itemprop="datePublished">07-13-2015</time>
+    
+  </div>
+  <div class="article-inner">
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="はじめに">はじめに</h1><p>QEMUは動的バイナリ変換を用いた完全仮想化式のハイパーバイザである．<br>QEMUは実行対象の命令列を逆アセンブルし，いちど中間表現に変換したうえで，ホストのアーキテクチャの命令列に変換して実行する．これによりQEMUは異なるアーキテクチャのバイナリを実行することができる．<br>しかしQEMUは遅かったため，アクセラレータとしてkqemuが開発された．<br>kqemuはユーザーモードのコードをホストのCPUに実行させる準仮想化ドライバであり，やがてKVMへと変貌を遂げた．さらにKVMはハードウェアによる仮想化支援機能を用いることで，さらなる高速化を実現した．もはやKVMにおいてQEMUはハードウェアのエミュレーションにしか用いられていない．<br>かわいそうなQEMU！<br>しかしQEMUの活躍する場面はいまだ多く残されている．たとえばマルウェア解析で．<br>それでも遅いのは困りものだ．QEMUはどこが遅いのだろうか．<br>ここでは<code>perf</code>を用いてQEMUのボトルネックを<strong>雑に</strong>特定する．</p>
+<h1 id="実験">実験</h1><p>今回はARMエミュレーションについて調査した．ホスト・ゲストともOSにはUbuntu 12.04(3.2.0-23-generic)を用いた．<code>perf</code>でQEMUのプロファイリングを行っている間，ゲストではgccを用いてコンパイルを実行した．</p>
+<ul>
+<li><p>ARM版Ubuntu 12.04のインストール</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get install qemu&#10;# wget http://odroid.us/odroid/users/osterluk/qemu-example/qemu-example.tgz&#10;# tar xzf qemu-example.tgz ./zImage&#10;# wget http://releases.linaro.org/12.04/ubuntu/precise-images/developer/linaro-precise-developer-20120426-86.tar.gz&#10;# tar xzf linaro-precise-developer-20120426-86.tar.gz&#10;# qemu-img create -f raw rootfs.img 3G&#10;# mkfs.ext3 rootfs.img&#10;# mkdir mnt&#10;# sudo mount -o loop rootfs.img mnt&#10;# rsync -a binary/boot/filesystem.dir/ mnt/&#10;# sudo umount mnt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>QEMUのビルド</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get build-dep qemu&#10;# git clone git://git.qemu-project.org/qemu.git&#10;# cd qemu&#10;# git log | grep &#39;^commit&#39; | head -1 | awk &#39;&#123;print $2&#125;&#39;&#10;6169b60285fe1ff730d840a49527e721bfb30899&#10;# git submodule update --init dtc&#10;# git submodule update --init pixman&#10;# ./configure --extra-ldflags=-pg --target-list=arm-softmmu&#10;# make</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>perf</code>のインストール</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># sudo apt-get install linux-tools&#10;# sudo echo 0 &#62; /proc/sys/kernel/perf_event_paranoid</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>perf</code>によるプロファイリング</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># perf record -a -g -F100000 qemu/arm-softmmu/qemu-system-arm -M vexpress-a9 -m 512 -kernel zImage -sd rootfs.img -append &#34;root=/dev/mmcblk0 rw physmap.enabled=0 console=ttyAMA0&#34; -monitor stdio&#10;WARNING: Image format was not specified for &#39;../../rootfs.img&#39; and probing guessed raw.&#10;         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.&#10;         Specify the &#39;raw&#39; format explicitly to remove the restrictions.&#10;QEMU 2.3.90 monitor - type &#39;help&#39; for more information&#10;(qemu) audio: Could not init `oss&#39; audio driver&#10;&#10;(qemu) q&#10;[ perf record: Woken up 37 times to write data ]&#10;[ perf record: Captured and wrote 9.465 MB perf.data (~413514 samples) ]&#10;&#10;&#10;Failed to open /tmp/perf-6993.map, continuing without symbols&#10;Failed to open [vmxnet], continuing without symbols&#10;Failed to open [vmci], continuing without symbols&#10;Failed to open [vsock], continuing without symbols&#10;no symbols found in /bin/dash, maybe install a debug package?&#10;no symbols found in /usr/bin/xargs, maybe install a debug package?&#10;no symbols found in /usr/bin/updatedb.mlocate, maybe install a debug package?&#10;no symbols found in /usr/bin/dpkg-query, maybe install a debug package?</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Flame Graphsによる可視化</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># wget https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl&#10;# wget https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl&#10;# perf script&#62; perf_data.txt&#10;# perl stackcollapse-perf.pl perf_data.txt|perl flamegraph.pl --title &#34;Flame Graphs - qemu-system-arm&#34; &#62; flamegraphs-qemu-system-arm.svg</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><code>perf</code>の結果をFlame Graphsを用いて可視化すると下図のようになった．Flame GraphsはUSENIX LISA’2013にて発表された可視化ツールである．</p>
+<p><img src="/image/flamegraphs-qemu-system-arm.png"></p>
+<p>x軸は時系列，y軸はコールスタックを意味する．横幅が広く上位に位置する関数がボトルネックであるといえる．<br>よってボトルネックは<code>clear_page()</code>すなわちTCGの各関数で発生しているページフォルトである．</p>
+<h1 id="おわりに">おわりに</h1><p>ページフォルトだけは勘弁してほしい．</p>
+<h1 id="参考文献">参考文献</h1><ul>
+<li>“perf + Flame Graphs で Linux カーネル内のボトルネックを特定する - ablog,” <a href="http://d.hatena.ne.jp/yohei-a/20150706/1436208007" target="_blank" rel="external">http://d.hatena.ne.jp/yohei-a/20150706/1436208007</a></li>
+<li>Brendan Gregg, “<a href="https://www.usenix.org/conference/lisa13/technical-sessions/plenary/gregg" target="_blank" rel="external">Blazing Performance with Flame Graphs</a>,” Proceedings of the 27th Large Installation System Administration Conference, USENIX LISA’13, Washington, D.C., USA, 2013.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ntddk.github.io/2015/07/13/qemu-dbt-bottleneck/" data-id="cipx1f36x0015voosyxuc4fvi" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-semiotics-of-programming" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     
@@ -178,7 +238,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/04/04/semiotics-of-programming/" data-id="cipa8jbnr000xxsosrm0pbv65" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/04/04/semiotics-of-programming/" data-id="cipx1f36o000xvoosrub3z2yr" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/computational-semiotics/">computational semiotics</a></li></ul>
@@ -264,7 +324,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/04/03/pin-to-pemu/" data-id="cipa8jbo60019xsosvuwv33bt" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/04/03/pin-to-pemu/" data-id="cipx1f3710019voosmeg5n4zy" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -334,7 +394,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/03/14/sandbox-transparency-in-the-wild/" data-id="cipa8jbnx0013xsosyz5tk1u5" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/03/14/sandbox-transparency-in-the-wild/" data-id="cipx1f36v0013vooszh7i1uke" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -380,7 +440,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/02/24/before-c-constructor/" data-id="cipa8jbos001txsosai9jdu1e" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/02/24/before-c-constructor/" data-id="cipx1f37l001wvoos1f6jnpnk" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -441,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/01/31/xen-libvmi/" data-id="cipa8jbmw0005xsosg3i0wc5g" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/01/31/xen-libvmi/" data-id="cipx1f35p0005voosjelmv4jk" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/forensics/">forensics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -485,7 +545,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="cipa8jbnu0010xsosxx0ipzll" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2015/01/23/sandbox-transparency/" data-id="cipx1f36r0010voosm85nsy0w" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -537,7 +597,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="cipa8jbo30017xsoslar4xhr6" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/11/pintool-nx/" data-id="cipx1f36z0017voos4c35y5h6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploiting/">exploiting</a></li></ul>
@@ -591,7 +651,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cipa8jbn5000jxsoss8i49phs" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/09/v2e/" data-id="cipx1f363000jvoos40jn5vra" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vmi/">vmi</a></li></ul>
@@ -655,68 +715,10 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cipa8jbna000oxsoshyjamxxn" class="article-share-link">Share</a>
+      <a data-url="http://ntddk.github.io/2014/12/03/symexec-s2e/" data-id="cipx1f366000ovoosi9g0p120" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-vine-howto" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    
-      <header class="article-header">
-        
-  
-    <a class="article-title" href="/2014/09/28/vine-howto/">Vineを動かす</a>
-  
-
-      </header>
-    
-    <time class="article-date" datetime="2014-09-27T20:56:08.000Z" itemprop="datePublished">09-28-2014</time>
-    
-  </div>
-  <div class="article-inner">
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="はじめに">はじめに</h1><p>ここでは，<a href="http://bitblaze.cs.berkeley.edu/" target="_blank" rel="external">BitBlaze</a>のうち，静的解析に特化したコンポーネントであるVineを動かしてみる．</p>
-<h1 id="BitBlaze">BitBlaze</h1><p>BitBlazeはDawn Songらによるバイナリ解析プラットフォームで，2008年に<a href="http://bitblaze.cs.berkeley.edu/papers/bitblaze_iciss08.pdf" target="_blank" rel="external">BitBlaze: A New Approach to Computer Security via Binary Analysis [PDF]</a>が発表されて以来，数多くの研究に用いられてきた．BitBlazeは，動的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/temu.html" target="_blank" rel="external">TEMU</a>，静的解析コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/vine.html" target="_blank" rel="external">Vine</a>，動的シンボリック実行コンポーネントの<a href="http://bitblaze.cs.berkeley.edu/rudder.html" target="_blank" rel="external">Rudder</a>から構成される．このうち，TEMUとVineのソースコードが公開されている．</p>
-<h2 id="TEMU:_The_BitBlaze_Dynamic_Analysis_Component">TEMU: The BitBlaze Dynamic Analysis Component</h2><p>TEMUはQEMUをベースとしたエミュレータで，テイント解析(taint analysis)の機能を備えている．テイント解析とは，タグを設定したデータの伝搬を追跡することで，データ同士の依存関係を解析する技術である．TEMUはtracecapというプラグインを用いて，ゲストOS上で動作するアプリケーションのトレースログを取得することができる．</p>
-<h2 id="Vine:_The_BitBlaze_Static_Analysis_Component">Vine: The BitBlaze Static Analysis Component</h2><p>Vineは，逆アセンブリやTEMUのトレースファイルから，中間表現VineILや最弱事前条件，STP formulaなどを出力する．公開されているVineには，TEMU/tracecapのトレースファイルとしてfive.traceが同梱されている．これを例にVineの機能を見てみよう．</p>
-<h1 id="Vineのインストール">Vineのインストール</h1><p><a href="http://bitblaze.cs.berkeley.edu/release/vine-1.0/howto.html" target="_blank" rel="external">Vine installation and user manual</a>の通り．OCamlで記述されているため，関連のパッケージを導入する必要がある．また，32bit環境での動作を前提としている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install g++ ocaml ocaml-findlib libgdome2-ocaml-dev camlidl \ &#10;                     libextlib-ocaml-dev ocaml-native-compilers \ &#10;                     libocamlgraph-ocaml-dev binutils-dev texlive \ &#10;                     texlive-latex-extra transfig hevea</span><br></pre></td></tr></table></figure>
-<h1 id="trace_reader">trace_reader</h1><p>TEMU/tracecapが出力するトレースファイルはhuman-readableではなく，閲覧はVineのtrace_readerを介して行う必要がある．five.traceでは，T1がタグの識別子となっており，T0はデータに設定されたタグが存在しないことを意味する．なお，ここではキーボードからの入力にタグが設定されている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../trace_utils/trace_reader -trace five.trace | grep T1 | head -n 20&#10;42075911:&#9;movzbl (%eax),%eax&#9;R@eax[0x40014000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e0c:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077e14:&#9;movzbl (%edx),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abc5:&#9;mov    %eax,-0xac(%ebp)&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000000][4]&#9;T0&#10;4205abce:&#9;mov    -0xa8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6a0[0x00000000][4]&#9;T0&#10;4205abd5:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205abf5:&#9;mov    -0xac(%ebp),%edx&#9;R@edx[0x40014001][4]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac0b:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac14:&#9;movzbl -0xac(%ebp),%eax&#9;R@eax[0x42130b80][4]&#9;T0&#9;M@0xbffff69c[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac24:&#9;push   %eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x4213030c][4]&#9;T0&#10;4205ac25:&#9;mov    0x8(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff750[0x4212d980][4]&#9;T0&#10;4207793a:&#9;mov    0xc(%ebp),%edx&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff604[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077945:&#9;cmp    %dl,-0x1(%eax)&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;42077974:&#9;movzbl %dl,%eax&#9;R@dl[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;R@eax[0x40014000][4]&#9;T0&#10;42077960:&#9;cmp    $0xffffffff,%eax&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205ac39:&#9;movzbl -0x9d(%ebp),%eax&#9;R@eax[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff6ab[0x00000064][1]&#9;T0&#10;4205c550:&#9;mov    $0xa,%edx&#9;I@0x00000000[0x0000000a][4]&#9;T0&#9;R@edx[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205c566:&#9;cmpl   $0xffffffff,-0xac(%ebp)&#9;I@0x00000000[0xffffffff][1]&#9;T0&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd1:&#9;movzbl (%eax),%edi&#9;R@edi[0x00000000][4]&#9;T0&#9;M@0x40014000[0x00000035][1]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#10;4205dcd8:&#9;mov    %edi,-0xac(%ebp)&#9;R@edi[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;&#9;M@0xbffff69c[0x00000035][4]&#9;T1 &#123;1 (1001, 0) ()()()&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="VineIL">VineIL</h1><p>Vineが生成するVineILは静的単一代入形式の中間表現であり，CFGの情報が損なわれることはない．中間表現の生成をinstruction liftingという．なお，VineILはValgrindの中間表現を扱うライブラリVEXをもとに生成される．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -ir-out five.ir&#10;~/vine/examples$ cat five.ir | awk &#39;NR==1000,NR==1020&#39;&#10;R_CC_OP_16:reg32_t = 0xd:reg32_t;&#10;T_32t9_1114:reg32_t = cast(T_8t3_1108:reg8_t)U:reg32_t;&#10;R_CC_DEP1_17:reg32_t = T_32t9_1114:reg32_t;&#10;R_CC_DEP2_18:reg32_t = 0:reg32_t;&#10;R_CC_NDEP_19:reg32_t = 0:reg32_t;&#10;/*eflags thunk: logic*/&#10;&#10;R_CF_10:reg1_t = false;&#10;T_7_1115:reg8_t = cast(T_32t9_1114:reg32_t)L:reg8_t;&#10;R_PF_11:reg1_t =&#10;!cast(&#10;      ((T_7_1115:reg8_t &#62;&#62; 7:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 6:reg32_t)&#10;         ^ (T_7_1115:reg8_t &#62;&#62; 5:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 4:reg32_t))&#10;       ^ &#10;         ((T_7_1115:reg8_t &#62;&#62; 3:reg32_t ^ T_7_1115:reg8_t &#62;&#62; 2:reg32_t)&#10;            ^ (T_7_1115:reg8_t &#62;&#62; 1:reg32_t ^ T_7_1115:reg8_t))&#10;         )L:reg1_t;&#10;R_AF_12:reg1_t = false;&#10;R_ZF_13:reg1_t = T_32t9_1114:reg32_t == 0:reg32_t;&#10;R_SF_14:reg1_t = 1:reg32_t == (1:reg32_t &#38; T_32t9_1114:reg32_t &#62;&#62; 7:reg32_t);&#10;R_OF_15:reg1_t = false;</span><br></pre></td></tr></table></figure>
-<p>出力している行の番号は適当．</p>
-<h1 id="最弱事前条件">最弱事前条件</h1><p>最弱事前条件(weakest precondition)はDijkstraによる述語変換意味論の基礎を成す概念である．Sを条件，式をRとした際，最弱事前条件WP(S, R)は，Rを実行する前にS’が成り立っていればSの実行後にSが成り立つ最も弱い条件S’を表す．単純な例だと，以下のように表現される．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WP(S, x=e) = S[e/x]&#10;WP(new == org,  new = new+taint) &#10;=  new+taint == org</span><br></pre></td></tr></table></figure>
-<p>Vineにおける最弱事前条件の出力は，以下のようになる．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -wp-out five.wp&#10;~/vine/examples$ grep let five.wp | head -n 20&#10;let post_1681:reg1_t = true in&#10;let R_EAX_1682:reg32_t = 0x40014000:reg32_t in&#10;let idx_1683:reg32_t = 0x40014000:reg32_t in&#10;let val_1684:reg8_t = INPUT_1001_0000_61:reg8_t in&#10;let temp_1685:reg8_t = val_1684:reg8_t &#38; 0xff:reg8_t in&#10;let temp_1686:reg8_t = temp_1685:reg8_t &#62;&#62; 0:reg8_t in&#10;let towrite_1688:reg8_t = cast(temp_1686:reg8_t)L:reg8_t in&#10;let mem_arr_1687:reg8_t[4294967296] =&#10;    let mem_arr_57[0x40014000:reg32_t]:reg8_t = towrite_1688:reg8_t in&#10;    mem_arr_57:reg8_t[4294967296]&#10;in&#10;let R_EAX_1689:reg32_t = 0x40014000:reg32_t in&#10;let R_GDT_1690:reg32_t = 0xc02dbd80:reg32_t in&#10;let R_LDT_1691:reg32_t = 0xc02dcc58:reg32_t in&#10;let R_DFLAG_1692:reg32_t = 1:reg32_t in&#10;let T_32t0_1693:reg32_t = R_EAX_1689:reg32_t in&#10;let T_8t2_1694:reg8_t = mem_arr_1687[0x40014000:reg32_t]:reg8_t in&#10;let T_32t1_1695:reg32_t = cast(T_8t2_1694:reg8_t)U:reg32_t in&#10;let R_EAX_1696:reg32_t = T_32t1_1695:reg32_t in&#10;let temp_1697:reg32_t = R_EAX_1696:reg32_t &#38; 0xffff00ff:reg32_t in&#10;let temp_1698:reg32_t = cast(0:reg8_t)U:reg32_t in&#10;let temp_1699:reg32_t = temp_1698:reg32_t &#60;&#60; 8:reg8_t in</span><br></pre></td></tr></table></figure>
-<p>このような手法でソースコードの存在しないバイナリから最弱事前条件を抽出し，仕様書を復元する試みがあるらしい．ゾッとする．</p>
-<h1 id="STP_formula">STP formula</h1><p>Vineは，TEMUのトレースファイルからSTP formulaを出力する．STP formulaとはSMTソルバであるSTP用のフォーマットである．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../trace_utils/appreplay -trace five.trace -stp-out five.stp&#10;~/vine/examples$ head -n 20 five.stp&#10;% free variables: &#10;mem_arr_57 : ARRAY BITVECTOR(64) OF BITVECTOR(8);&#10;INPUT_1001_0000_61 : BITVECTOR(8);&#10;% end free variables.&#10; &#10; &#10;ASSERT( 0bin1 =&#10;(LET post_1681 =&#10;    0bin1&#10;IN&#10;(LET R_EAX_1682 =&#10;    0hex40014000&#10;IN&#10;(LET idx_1683 =&#10;    0hex40014000&#10;IN&#10;(LET val_1684 =&#10;    INPUT_1001_0000_61&#10;IN&#10;(LET temp_1685 =</span><br></pre></td></tr></table></figure>
-<p>SMTソルバは充足可能性問題を解く．では，ここで与えられる命題とは何か．それは，任意の初期値がトレースファイルの結果と一致するというものだ．STPは命題が充足可能か解こうとし，充足不能であった場合は反例を出力する．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ cat &#62;&#62;five.stp&#10;QUERY(FALSE);&#10;COUNTEREXAMPLE;</span><br></pre></td></tr></table></figure>
-<p>ここで出力される反例は，実行経路に影響を与えた入力値となるようだ．five.traceでは，0x35(ASCIIで5)という入力値が分岐に影響を与えている．</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/vine/examples$ ../stp/stp five.stp&#10;Invalid.&#10;ASSERT( INPUT_1001_0_61  = 0hex35  );</span><br></pre></td></tr></table></figure>
-<p>これはトレースファイルに対する静的なシンボリック実行だと言える．シンボリック実行とは，記号によって表現したプログラムの変数を操作することで，実行経路に影響する制約を抽出する静的解析の手法である．シンボリック実行は到達定義の解析などモデルベーステストの領域で発展してきたが，マルウェアの挙動解析に役立てられないだろうか．</p>
-<h1 id="BAP">BAP</h1><p><a href="http://bap.ece.cmu.edu" target="_blank" rel="external">BAP</a>はDavid BrumleyらによるVineの再実装である．彼らはCMUに所属しており，PPPのメンバーでもある．彼らは脆弱性解析の自動化をmotivationとしてBitBlazeを扱ってきた．BAPはVineをより発展させたプロジェクトであり，逆アセンブリやTEMUのトレースファイルから中間表現BILを生成するほか，CFGのみならずCDG(control dependence graphs)やDDG(data dependence graphs)の出力をサポートしているようだ．</p>
-<h1 id="おわりに">おわりに</h1><p>TEMUのトレースファイルについて，ざっくりVineによる静的解析を行った．とりあえず動かしてみただけなので，コードを噛み砕く必要がある．気になるのはやはり中間表現のフォーマットだ．一度，QEMU，Valgrind，DynamoRIO，LLVM，Vine，BAPなどの中間表現について，対応を整理したほうが良いかもしれない．</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://ntddk.github.io/2014/09/28/vine-howto/" data-id="cipa8jbn2000cxsoskv1vhf89" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-binary-translation/">dynamic binary translation</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/symbolic-execution/">symbolic execution</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/taint-analysis/">taint analysis</a></li></ul>
 
     </footer>
   </div>
