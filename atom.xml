@@ -4,7 +4,7 @@
   <subtitle><![CDATA[技術ブログ]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://ntddk.github.io/"/>
-  <updated>2016-06-29T13:45:58.892Z</updated>
+  <updated>2016-06-30T00:46:12.703Z</updated>
   <id>http://ntddk.github.io/</id>
   
   <author>
@@ -19,7 +19,7 @@
     <link href="http://ntddk.github.io/2016/06/29/cyber-security-in-israel/"/>
     <id>http://ntddk.github.io/2016/06/29/cyber-security-in-israel/</id>
     <published>2016-06-29T13:30:00.000Z</published>
-    <updated>2016-06-29T13:45:58.892Z</updated>
+    <updated>2016-06-30T00:46:12.703Z</updated>
     <content type="html"><![CDATA[<p>　これはマルウェアに感染した端末の基板で構成されたトロイの木馬．国際会議<a href="http://cyberweek.tau.ac.il" target="_blank" rel="external">Cyber Week</a>の展示の一環．</p>
 <p><img src="/image/israel/cyberhorse.jpg" width="100%" height="100%"></p>
 <h1 id="はじめに">はじめに</h1><p>　先週，イスラエル外務省からの招待でイスラエルのサイバーセキュリティ産業の視察に参加した．<br>　視察の参加者は日本政府・重要インフラ・セキュリティ業界関係に大別される．視察の目的は彼らにイスラエルの起業文化とサイバーセキュリティ技術を伝え，相互理解を図ることにあった．そんな視察になぜ一介のモラトリアム大学生でしかない私が潜り込めたのかというと，イスラエル外務省をハックしたから———というのは嘘．昨年発表した<a href="http://codeblue.jp/" target="_blank" rel="external">CODEBLUE</a>というセキュリティカンファレンスのオーガナイザーにイスラエル大使館から打診があり，若者枠に組み込まれたという経緯である．なんと旅費はイスラエル外務省の負担．<br>　そういうわけで，記憶が錆びつかないうちに，イスラエルのサイバーセキュリティ事情を紹介したい．</p>
@@ -47,7 +47,7 @@
 </ul>
 </li>
 </ul>
-<p>　国家サイバー局は日本でいうところの<a href="www.nisc.go.jp/">内閣サイバーセキュリティセンター (NISC) </a>的な立ち位置で，サイバーセキュリティ関連の産業育成と防衛について政府に進言する立場を担っている．国家サイバーセキュリティ委員会は各種標準化団体のほかCSIRTとしてIL-CERTを抱える機関である．<strong>IL-CERTではSTIX/TAXIIを用いた情報共有体制が確立されており，検体の挙動をタグベースで共有することで，機微情報を漏らすことなく複数機関にまたがったインシデントに対応できるようになっている</strong>らしい．視察では，ウェブベースの情報共有ツールも紹介された．<br>　国家サイバー局の下部にあるCyberSparkはイスラエル南部の中心都市ベエルシェバにある研究開発特区・機関で，ベンチャーキャピタル，国内のスタートアップ企業のほか，IBMやLockheed Martinといった多国籍企業，隣接するベン・グリオン大学から構成される．ネゲブ砂漠の開発を進めつつ，<strong>競合他社を大学との共同研究という形でまとめ，その研究をスタートアップとして興す</strong>ことを目的としているようだ．ICRCもまたテルアビブ大学を中心とした同様の学際的研究機関で，Cyber Weekのオーガナイザーでもあった．これらは東大京大と産総研やNII, NICTが直接つながっているようなものだと思えばよいが，研究内容を即座にスタートアップ化する点は興味深い．<br>　IC3は国営の軍需企業<a href="http://www.iai.co.il/" target="_blank" rel="external">IAI (Israel Aerospace Industries) </a>を中心としたジョイントベンチャーで，2020年の東京オリンピックに向けた日本市場開拓を虎視眈々とねらっている．<br>　この構造には，政府機関のほか次のようなベンチャーキャピタルとスタートアップ推進企業が噛んでいる：</p>
+<p>　国家サイバー局は日本でいうところの<a href="http://www.nisc.go.jp/" target="_blank" rel="external">内閣サイバーセキュリティセンター (NISC) </a>的な立ち位置で，サイバーセキュリティ関連の産業育成と防衛について政府に進言する立場を担っている．国家サイバーセキュリティ委員会は各種標準化団体のほかCSIRTとしてIL-CERTを抱える機関である．<strong>IL-CERTではSTIX/TAXIIを用いた情報共有体制が確立されており，検体の挙動をタグベースで共有することで，機微情報を漏らすことなく複数機関にまたがったインシデントに対応できるようになっている</strong>らしい．視察では，ウェブベースの情報共有ツールも紹介された．<br>　国家サイバー局の下部にあるCyberSparkはイスラエル南部の中心都市ベエルシェバにある研究開発特区・機関で，ベンチャーキャピタル，国内のスタートアップ企業のほか，IBMやLockheed Martinといった多国籍企業，隣接するベン・グリオン大学から構成される．ネゲブ砂漠の開発を進めつつ，<strong>競合他社を大学との共同研究という形でまとめ，その研究をスタートアップとして興す</strong>ことを目的としているようだ．ICRCもまたテルアビブ大学を中心とした同様の学際的研究機関で，Cyber Weekのオーガナイザーでもあった．これらは東大京大と産総研やNII, NICTが直接つながっているようなものだと思えばよいが，研究内容を即座にスタートアップ化する点は興味深い．<br>　IC3は国営の軍需企業<a href="http://www.iai.co.il/" target="_blank" rel="external">IAI (Israel Aerospace Industries) </a>を中心としたジョイントベンチャーで，2020年の東京オリンピックに向けた日本市場開拓を虎視眈々とねらっている．<br>　この構造には，政府機関のほか次のようなベンチャーキャピタルとスタートアップ推進企業が噛んでいる：</p>
 <ul>
 <li><a href="https://www.bvp.com/" target="_blank" rel="external">BVP (Bessemer Venture Partners)</a></li>
 <li><a href="www.jvpvc.com/">JVP (Jerusalem Venture Partners)</a></li>
