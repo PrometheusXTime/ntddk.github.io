@@ -16,8 +16,8 @@
   
   <entry>
     <title><![CDATA[Unicornのソースコードを読む（Python編）]]></title>
-    <link href="http://ntddk.github.io/2016/07/09/unicorn-internals/"/>
-    <id>http://ntddk.github.io/2016/07/09/unicorn-internals/</id>
+    <link href="http://ntddk.github.io/2016/07/09/unicorn-internals-python/"/>
+    <id>http://ntddk.github.io/2016/07/09/unicorn-internals-python/</id>
     <published>2016-07-09T06:20:00.000Z</published>
     <updated>2016-07-09T06:17:58.664Z</updated>
     <content type="html"><![CDATA[<p>　※Rackサーバの方のUnicornではない．</p>
